@@ -4,6 +4,7 @@ import { MazoListView } from '@/views/MazoListView'
 import { SesionView } from '@/views/SesionView'
 import { DashboardView } from '@/views/DashboardView'
 import { GeminiView } from '@/views/GeminiView'
+import { TarjetaListView } from '@/views/TarjetaListView'
 import { mazoController } from '@/controllers/MazoController'
 import { sesionController } from '@/controllers/SesionController'
 import { geminiController } from '@/controllers/GeminiController'
@@ -15,6 +16,7 @@ class App {
   private sesionView: SesionView | null = null
   private dashboardView: DashboardView | null = null
   private geminiView: GeminiView | null = null
+  private tarjetaListView: TarjetaListView | null = null
 
   async inicializar(): Promise<void> {
     console.log('[App] Inicializando StudyFlow...')
@@ -63,6 +65,7 @@ class App {
     router.enRuta('sesion', () => this.mostrarSesion())
     router.enRuta('dashboard', () => this.mostrarDashboard())
     router.enRuta('gemini', () => this.mostrarGemini())
+    router.enRuta('tarjetas', () => this.mostrarTarjetas())
   }
 
   private cargarRutaInicial(): void {
@@ -257,6 +260,7 @@ class App {
           </div>
           <div class="p-6 space-y-3">
             <button id="btn-estudiar" class="btn-accent w-full">Estudiar Ahora</button>
+            <button id="btn-gestionar-tarjetas" class="btn-secondary w-full">Gestionar Tarjetas</button>
             <button id="btn-ver-progreso" class="btn-secondary w-full">Ver Progreso</button>
             <button id="btn-analizar-ia" class="btn-secondary w-full">Analizar con IA</button>
             <button id="btn-modal-cancelar" class="btn-outline w-full">Cerrar</button>
@@ -269,6 +273,12 @@ class App {
     document.getElementById('btn-estudiar')?.addEventListener('click', () => {
       this.eliminarModal()
       this.iniciarSesion(mazo.id)
+    })
+    document.getElementById('btn-gestionar-tarjetas')?.addEventListener('click', () => {
+      sessionStorage.setItem('lastMazoId', mazo.id)
+      sessionStorage.setItem('lastMazoData', JSON.stringify(mazo))
+      this.eliminarModal()
+      router.navegar('tarjetas')
     })
     document.getElementById('btn-ver-progreso')?.addEventListener('click', () => {
       sessionStorage.setItem('lastMazoId', mazo.id)
@@ -353,6 +363,35 @@ class App {
       `
       document.getElementById('btn-ir-inicio')?.addEventListener('click', () => router.navegar('inicio'))
     }
+  }
+
+  // ─── TARJETAS ────────────────────────────────────────────────────────────────
+
+  private mostrarTarjetas(): void {
+    const mazoDataRaw = sessionStorage.getItem('lastMazoData')
+    if (!mazoDataRaw) {
+      router.navegar('inicio')
+      return
+    }
+
+    let mazo: Mazo
+    try {
+      mazo = JSON.parse(mazoDataRaw) as Mazo
+    } catch {
+      router.navegar('inicio')
+      return
+    }
+
+    this.limpiarContenido()
+    const content = document.getElementById('content')
+    if (!content) return
+
+    content.innerHTML = '<div id="tarjeta-list-container"></div>'
+    this.tarjetaListView = new TarjetaListView('tarjeta-list-container', mazo)
+    this.tarjetaListView.setEventHandlers({
+      onVolver: () => router.navegar('inicio'),
+    })
+    this.tarjetaListView.cargarTarjetas()
   }
 
   // ─── GEMINI ──────────────────────────────────────────────────────────────────

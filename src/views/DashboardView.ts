@@ -93,7 +93,7 @@ export class DashboardView {
 
   private renderizarEstatica(
     titulo: string,
-    valor: number,
+    _valor: number,
     etiqueta: string
   ): string {
     return `

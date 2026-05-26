@@ -242,7 +242,7 @@ class AuditorAPI {
       ]
 
       let tiposOk = 0
-      for (const tipo of tiposModelos) {
+      for (const _tipo of tiposModelos) {
         // En una auditoría real, verificarías que los tipos existan
         tiposOk++
       }
@@ -271,7 +271,7 @@ class AuditorAPI {
   /**
    * Valida si un endpoint está disponible
    */
-  private validarEndpoint(path: string, metodo: string): boolean {
+  private validarEndpoint(path: string, _metodo: string): boolean {
     // Esta es una validación básica - en producción harías llamadas reales
     const endpointsValidos = [
       '/mazos',

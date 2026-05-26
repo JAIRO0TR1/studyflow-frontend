@@ -357,6 +357,15 @@ class App {
 
   // ─── GEMINI ──────────────────────────────────────────────────────────────────
 
+  private mostrarGemini(): void {
+    const mazoId = sessionStorage.getItem('lastMazoId')
+    if (mazoId) {
+      this.analizarConGemini(mazoId)
+    } else {
+      router.navegar('inicio')
+    }
+  }
+
   private async analizarConGemini(mazoId: string): Promise<void> {
     try {
       this.mostrarCargando('Analizando mazo con IA... esto puede tomar unos segundos.')

@@ -1,7 +1,7 @@
 import { mazoApi } from '@/api/mazoApi'
 import { tarjetaApi } from '@/api/tarjetaApi'
 import type { Mazo, MazoDTO, MazoDeCreacion, MazoConEstadisticas } from '@/models/Mazo'
-import type { Tarjeta, TarjetaDTO, TarjetaDeCreacion } from '@/models/Tarjeta'
+import type { Tarjeta, TarjetaDTO } from '@/models/Tarjeta'
 
 /**
  * Controlador para la gestión de mazos

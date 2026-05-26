@@ -2,12 +2,14 @@
  * Componente para el panel de estadísticas y progreso
  */
 
-import type { Progreso } from '@/models/Progreso'
+import type { Progreso, EstadisticasGlobales } from '@/models/Progreso'
 import { progresoController } from '@/controllers/ProgresoController'
 
 export class DashboardView {
   private container: HTMLElement
   private progreso: Progreso | null = null
+  private estadisticasGlobales: EstadisticasGlobales | null = null
+  private onIrAMazos?: () => void
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId)
@@ -15,6 +17,10 @@ export class DashboardView {
       throw new Error(`Container with id ${containerId} not found`)
     }
     this.container = element
+  }
+
+  setEventHandlers(handlers: { onIrAMazos?: () => void }): void {
+    this.onIrAMazos = handlers.onIrAMazos
   }
 
   async cargarProgreso(mazoId: string): Promise<void> {
@@ -25,6 +31,114 @@ export class DashboardView {
       console.error('Error al cargar progreso:', error)
       this.mostrarError('Error al cargar estadísticas')
     }
+  }
+
+  async cargarEstadisticasGlobales(): Promise<void> {
+    try {
+      this.estadisticasGlobales = await progresoController.obtenerEstadisticasGlobales()
+      this.renderizarGlobales()
+    } catch (error) {
+      console.error('Error al cargar estadísticas globales:', error)
+      this.mostrarError('Error al cargar estadísticas globales')
+    }
+  }
+
+  private renderizarGlobales(): void {
+    if (!this.estadisticasGlobales) return
+    const e = this.estadisticasGlobales
+
+    const totalMazos = e.totalMazos ?? 0
+    const totalTarjetas = e.totalTarjetas ?? 0
+    const rachaActual = e.rachaActual ?? 0
+    const aciertosHoy = e.aciertosHoy ?? 0
+    const intentosHoy = e.intentosHoy ?? 0
+    const tiempoMin = e.tiempoEstudiadoHoy ?? 0
+    const precisionHoy = intentosHoy > 0 ? (aciertosHoy / intentosHoy) * 100 : 0
+
+    this.container.innerHTML = `
+      <div class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-neutral-900">Progreso Global</h2>
+          <p class="text-neutral-500 mt-2">Estadísticas combinadas de todos tus mazos</p>
+        </div>
+
+        <!-- Estadísticas globales -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="card text-center">
+            <p class="text-3xl font-bold text-accent-600 mb-2">${totalMazos}</p>
+            <p class="text-sm text-neutral-600">Mazos creados</p>
+          </div>
+          <div class="card text-center">
+            <p class="text-3xl font-bold text-accent-600 mb-2">${totalTarjetas}</p>
+            <p class="text-sm text-neutral-600">Tarjetas totales</p>
+          </div>
+          <div class="card text-center">
+            <p class="text-3xl font-bold text-accent-600 mb-2">${this.formatearRacha(rachaActual)}</p>
+            <p class="text-sm text-neutral-600">Racha actual</p>
+          </div>
+        </div>
+
+        <!-- Actividad de hoy -->
+        <div class="card">
+          <h3 class="font-bold text-lg mb-4 text-neutral-900">Actividad de Hoy</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p class="text-sm text-neutral-600 mb-1">Tarjetas estudiadas</p>
+              <p class="text-2xl font-bold text-neutral-900">${intentosHoy}</p>
+            </div>
+            <div>
+              <p class="text-sm text-neutral-600 mb-1">Aciertos</p>
+              <p class="text-2xl font-bold text-neutral-900">${aciertosHoy}</p>
+            </div>
+            <div>
+              <p class="text-sm text-neutral-600 mb-1">Tiempo de estudio</p>
+              <p class="text-2xl font-bold text-neutral-900">${this.formatearTiempo(tiempoMin)}</p>
+            </div>
+          </div>
+          ${intentosHoy > 0 ? `
+            <div class="mt-4 pt-4 border-t border-neutral-100">
+              <div class="flex justify-between text-sm text-neutral-600 mb-2">
+                <span>Precisión de hoy</span>
+                <span>${precisionHoy.toFixed(1)}%</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar" style="width: ${precisionHoy}%"></div>
+              </div>
+            </div>
+          ` : `
+            <div class="mt-4 pt-4 border-t border-neutral-100 text-center text-sm text-neutral-400">
+              Aún no has estudiado hoy. ¡Empieza una sesión!
+            </div>
+          `}
+        </div>
+
+        ${totalMazos === 0 ? `
+          <div class="card text-center py-12">
+            <div class="w-16 h-16 bg-neutral-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <span class="text-2xl">📚</span>
+            </div>
+            <p class="text-neutral-600 mb-4">Aún no tienes mazos. Crea el primero para comenzar.</p>
+            <button id="btn-ir-mazos-global" class="btn-accent">Ir a Mis Mazos</button>
+          </div>
+        ` : `
+          <div class="card text-center text-sm text-neutral-500">
+            Para ver estadísticas detalladas de un mazo específico, abre el mazo y elige <strong>"Ver Progreso"</strong>.
+          </div>
+        `}
+      </div>
+    `
+
+    document.getElementById('btn-ir-mazos-global')?.addEventListener('click', () => {
+      this.onIrAMazos?.()
+    })
+  }
+
+  private formatearTiempo(minutos: number): string {
+    if (minutos < 1) return '0 min'
+    if (minutos < 60) return `${Math.round(minutos)} min`
+    const horas = Math.floor(minutos / 60)
+    const mins = Math.round(minutos % 60)
+    return mins > 0 ? `${horas}h ${mins}min` : `${horas}h`
   }
 
   private renderizar(): void {

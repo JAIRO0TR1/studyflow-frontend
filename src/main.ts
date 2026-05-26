@@ -57,7 +57,10 @@ class App {
     `
 
     document.getElementById('nav-inicio')?.addEventListener('click', () => router.navegar('inicio'))
-    document.getElementById('nav-dashboard')?.addEventListener('click', () => router.navegar('dashboard'))
+    document.getElementById('nav-dashboard')?.addEventListener('click', () => {
+      sessionStorage.removeItem('lastMazoId')
+      router.navegar('dashboard')
+    })
   }
 
   private configurarRutas(): void {
@@ -346,22 +349,15 @@ class App {
 
     content.innerHTML = '<div id="dashboard-container"></div>'
     this.dashboardView = new DashboardView('dashboard-container')
+    this.dashboardView.setEventHandlers({
+      onIrAMazos: () => router.navegar('inicio'),
+    })
 
     const mazoId = sessionStorage.getItem('lastMazoId')
     if (mazoId) {
       await this.dashboardView.cargarProgreso(mazoId)
     } else {
-      document.getElementById('dashboard-container')!.innerHTML = `
-        <div class="text-center py-16">
-          <div class="w-16 h-16 bg-neutral-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span class="text-2xl text-neutral-400">📊</span>
-          </div>
-          <h2 class="text-xl font-bold text-neutral-700 mb-2">Sin mazo seleccionado</h2>
-          <p class="text-neutral-500 mb-6">Selecciona un mazo y elige "Ver Progreso" para ver tus estadísticas.</p>
-          <button id="btn-ir-inicio" class="btn-accent">Ir a Mis Mazos</button>
-        </div>
-      `
-      document.getElementById('btn-ir-inicio')?.addEventListener('click', () => router.navegar('inicio'))
+      await this.dashboardView.cargarEstadisticasGlobales()
     }
   }
 

@@ -3,6 +3,11 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://web-production-e7690.up.railway.app/api"
+    }
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

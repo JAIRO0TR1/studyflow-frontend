@@ -30,9 +30,14 @@ export class DashboardView {
   private renderizar(): void {
     if (!this.progreso) return
 
-    const diasRestantes = progresoController.calcularDiasRestantes(
-      this.progreso.tarjetasPendientes
-    )
+    // Normalizar campos opcionales que el backend puede omitir
+    const p = this.progreso
+    const dominadas = p.tarjetasDominadas ?? 0
+    const pendientes = p.tarjetasPendientes ?? 0
+    const racha = p.racha ?? 0
+    const porcentajeAciertos = p.porcentajeAciertos ?? 0
+    const porcentajeCompletado = p.porcentajeCompletado ?? 0
+    const diasRestantes = progresoController.calcularDiasRestantes(pendientes)
 
     this.container.innerHTML = `
       <div class="space-y-6">
@@ -43,9 +48,9 @@ export class DashboardView {
 
         <!-- Tarjetas de estadísticas principales -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          ${this.renderizarEstatica('Racha', this.progreso.racha, this.formatearRacha(this.progreso.racha))}
-          ${this.renderizarEstatica('Dominadas', this.progreso.tarjetasDominadas, `${this.progreso.tarjetasDominadas}/${this.progreso.tarjetasDominadas + this.progreso.tarjetasPendientes}`)}
-          ${this.renderizarEstatica('Precisión', this.progreso.porcentajeAciertos, progresoController.formatearPorcentaje(this.progreso.porcentajeAciertos))}
+          ${this.renderizarEstatica('Racha', racha, this.formatearRacha(racha))}
+          ${this.renderizarEstatica('Dominadas', dominadas, `${dominadas}/${dominadas + pendientes}`)}
+          ${this.renderizarEstatica('Precisión', porcentajeAciertos, progresoController.formatearPorcentaje(porcentajeAciertos))}
           ${this.renderizarEstatica('Estimado', diasRestantes, diasRestantes === 0 ? 'Completado' : diasRestantes + ' días')}
         </div>
 
@@ -54,12 +59,12 @@ export class DashboardView {
           <h3 class="font-bold text-lg mb-4 text-neutral-900">Progreso General</h3>
           <div class="flex justify-between text-sm text-neutral-600 mb-2">
             <span>Completado</span>
-            <span>${progresoController.formatearPorcentaje(this.progreso.porcentajeCompletado)}</span>
+            <span>${progresoController.formatearPorcentaje(porcentajeCompletado)}</span>
           </div>
           <div class="progress">
             <div
               class="progress-bar"
-              style="width: ${this.progreso.porcentajeCompletado}%"
+              style="width: ${porcentajeCompletado}%"
             ></div>
           </div>
         </div>
@@ -69,13 +74,13 @@ export class DashboardView {
           <div class="card">
             <p class="text-sm text-neutral-600 mb-2">Última sesión</p>
             <p class="text-lg font-bold text-neutral-900">
-              ${this.formatearFecha(this.progreso.ultimaSesion)}
+              ${p.ultimaSesion ? this.formatearFecha(p.ultimaSesion) : 'Sin sesiones aún'}
             </p>
           </div>
           <div class="card">
             <p class="text-sm text-neutral-600 mb-2">Próxima sesión</p>
             <p class="text-lg font-bold text-accent-600">
-              ${this.formatearFecha(this.progreso.proximaSesion)}
+              ${p.proximaSesion ? this.formatearFecha(p.proximaSesion) : 'Estudia hoy'}
             </p>
           </div>
         </div>
@@ -105,8 +110,8 @@ export class DashboardView {
   }
 
   private renderizarGraficoActividad(): string {
-    if (!this.progreso || this.progreso.actividadUltimosMeses.length === 0) {
-      return '<p class="text-neutral-400">Sin actividad</p>'
+    if (!this.progreso || !this.progreso.actividadUltimosMeses || this.progreso.actividadUltimosMeses.length === 0) {
+      return '<p class="text-neutral-400 text-sm">Sin actividad registrada aún</p>'
     }
 
     const ultimos7 = this.progreso.actividadUltimosMeses.slice(-7)

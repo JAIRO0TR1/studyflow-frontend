@@ -108,12 +108,12 @@ class App {
 
         <!-- Header con gradiente -->
         <header class="header sticky top-0 z-40">
-          <div class="main-container flex justify-between items-center py-3">
+          <div class="main-container flex justify-between items-center py-2">
 
             <!-- Logo -->
-            <div class="flex items-center gap-2">
-              <img src="/logo.png" alt="StudyFlow" class="h-14 w-auto drop-shadow-md"
-                style="filter:brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.4))" />
+            <div class="flex items-center">
+              <img src="/logo.png" alt="StudyFlow" class="h-16 w-auto"
+                style="filter:brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.5))" />
             </div>
 
             <!-- Nav + usuario -->
@@ -558,13 +558,23 @@ class App {
       router.navegar('sesion')
     } catch (err: any) {
       this.limpiarContenido()
+      const msg: string = err?.message ?? ''
+      const sinTarjetas =
+        msg.includes('pendientes') ||
+        msg.includes('hoy') ||
+        msg.includes('no hay') ||
+        msg.includes('vacío') ||
+        msg.includes('vacio') ||
+        msg.includes('empty') ||
+        msg.includes('400')
+
       this.mostrarAlerta(
-        err?.message?.includes('pendientes') || err?.message?.includes('hoy')
-          ? 'No hay tarjetas pendientes para hoy. Vuelve mañana o agrega nuevas tarjetas.'
-          : 'Error al iniciar la sesión de estudio.',
+        sinTarjetas
+          ? 'No hay tarjetas pendientes para hoy en este mazo. Vuelve mañana o agrega nuevas tarjetas.'
+          : `Error al iniciar la sesión: ${msg || 'intenta de nuevo.'}`,
         'warning'
       )
-      setTimeout(() => router.navegar('inicio'), 3000)
+      setTimeout(() => router.navegar('inicio'), 4000)
     }
   }
 

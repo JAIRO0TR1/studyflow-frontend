@@ -239,8 +239,11 @@ export class SesionView {
     const minimoRecomendado = totalTarjetas * 5
     const esSesionCorta     = seg < minimoRecomendado
 
-    // Acumular tiempo real en localStorage (en segundos, por día)
+    // Acumular tiempo, intentos y aciertos en localStorage (por día)
     SesionView.acumularTiempoLocal(seg)
+    if (stats) {
+      SesionView.acumularEstadisticasLocales(stats.total, stats.aciertos)
+    }
 
     if (pct >= 60 && !esSesionCorta) this.confetti()
 
@@ -328,18 +331,34 @@ export class SesionView {
     document.getElementById('btn-volver')?.addEventListener('click', () => this.onSesionCancelada?.())
   }
 
-  // Acumula los segundos de esta sesión en localStorage bajo la clave del día actual
   static acumularTiempoLocal(segundos: number): void {
-    const hoy = new Date().toISOString().slice(0, 10) // 'YYYY-MM-DD'
+    const hoy = new Date().toISOString().slice(0, 10)
     const key = `sf_tiempo_${hoy}`
     const prev = parseInt(localStorage.getItem(key) ?? '0', 10)
     localStorage.setItem(key, String(prev + segundos))
   }
 
-  // Devuelve los segundos acumulados hoy (lectura estática)
+  static acumularEstadisticasLocales(intentos: number, aciertos: number): void {
+    const hoy = new Date().toISOString().slice(0, 10)
+    const pi  = parseInt(localStorage.getItem(`sf_intentos_${hoy}`) ?? '0', 10)
+    const pa  = parseInt(localStorage.getItem(`sf_aciertos_${hoy}`) ?? '0', 10)
+    localStorage.setItem(`sf_intentos_${hoy}`, String(pi + intentos))
+    localStorage.setItem(`sf_aciertos_${hoy}`, String(pa + aciertos))
+  }
+
   static obtenerTiempoHoySegundos(): number {
     const hoy = new Date().toISOString().slice(0, 10)
     return parseInt(localStorage.getItem(`sf_tiempo_${hoy}`) ?? '0', 10)
+  }
+
+  static obtenerIntentosHoy(): number {
+    const hoy = new Date().toISOString().slice(0, 10)
+    return parseInt(localStorage.getItem(`sf_intentos_${hoy}`) ?? '0', 10)
+  }
+
+  static obtenerAciertosHoy(): number {
+    const hoy = new Date().toISOString().slice(0, 10)
+    return parseInt(localStorage.getItem(`sf_aciertos_${hoy}`) ?? '0', 10)
   }
 
   // ─── UTILIDADES ──────────────────────────────────────────────────────────────

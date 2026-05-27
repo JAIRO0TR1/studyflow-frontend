@@ -109,8 +109,9 @@ export class MazoListView {
     const totalMazos   = e?.totalMazos ?? this.mazos.length
     const totalCards   = e?.totalTarjetas ?? this.mazos.reduce((acc, m) => acc + (m.totalTarjetas ?? 0), 0)
     const racha        = e?.rachaActual ?? 0
-    const intentosHoy  = e?.intentosHoy ?? 0
-    const aciertosHoy  = e?.aciertosHoy ?? 0
+    // Datos de actividad de hoy desde localStorage (fuente confiable)
+    const intentosHoy  = SesionView.obtenerIntentosHoy() || (e?.intentosHoy ?? 0)
+    const aciertosHoy  = SesionView.obtenerAciertosHoy() || (e?.aciertosHoy ?? 0)
     const tiempoLocalSeg = SesionView.obtenerTiempoHoySegundos()
     const tiempoHoy    = tiempoLocalSeg > 0
       ? tiempoLocalSeg / 60

@@ -29,34 +29,57 @@ class App {
     console.log('[App] StudyFlow listo')
   }
 
+  // ─── LAYOUT ──────────────────────────────────────────────────────────────────
+
   private renderizarLayout(): void {
     this.appContainer!.innerHTML = `
-      <div class="min-h-screen bg-neutral-50">
+      <div class="min-h-screen bg-neutral-100">
+
+        <!-- Header institucional -->
         <header class="header">
-          <div class="main-container flex justify-between items-center py-4">
+          <div class="main-container flex justify-between items-center py-3">
+            <!-- Logo y nombre -->
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-accent-500 rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-lg">SF</span>
+              <div class="w-9 h-9 bg-white/15 rounded border border-white/25 flex items-center justify-center">
+                <span class="text-white font-bold text-sm tracking-tight">SF</span>
               </div>
-              <h1 class="text-2xl font-bold text-primary-500">StudyFlow</h1>
+              <div>
+                <h1 class="text-lg font-bold text-white tracking-wide leading-none">StudyFlow</h1>
+                <p class="text-xs text-white/50 hidden sm:block leading-none mt-0.5">Sistema de Tarjetas Inteligentes</p>
+              </div>
             </div>
-            <nav class="flex gap-6">
-              <button id="nav-inicio" class="text-neutral-600 hover:text-accent-500 font-medium transition-colors">
+
+            <!-- Navegación -->
+            <nav class="flex gap-1">
+              <button id="nav-inicio" class="nav-btn">
                 Mis Mazos
               </button>
-              <button id="nav-dashboard" class="text-neutral-600 hover:text-accent-500 font-medium transition-colors">
+              <button id="nav-dashboard" class="nav-btn">
                 Progreso
               </button>
             </nav>
           </div>
         </header>
+
+        <!-- Contenido principal -->
         <main class="main-container py-8">
           <div id="content"></div>
         </main>
+
+        <!-- Footer institucional -->
+        <footer class="border-t border-neutral-200 bg-white mt-16">
+          <div class="main-container py-4 flex justify-between items-center text-xs text-neutral-400">
+            <span>StudyFlow &mdash; Patrones de Software 2026</span>
+            <span>SM-2 &bull; Gemini AI &bull; Spring Boot</span>
+          </div>
+        </footer>
+
       </div>
     `
 
-    document.getElementById('nav-inicio')?.addEventListener('click', () => router.navegar('inicio'))
+    document.getElementById('nav-inicio')?.addEventListener('click', () => {
+      router.navegar('inicio')
+    })
     document.getElementById('nav-dashboard')?.addEventListener('click', () => {
       sessionStorage.removeItem('lastMazoId')
       router.navegar('dashboard')
@@ -64,11 +87,11 @@ class App {
   }
 
   private configurarRutas(): void {
-    router.enRuta('inicio', () => this.mostrarInicio())
-    router.enRuta('sesion', () => this.mostrarSesion())
-    router.enRuta('dashboard', () => this.mostrarDashboard())
-    router.enRuta('gemini', () => this.mostrarGemini())
-    router.enRuta('tarjetas', () => this.mostrarTarjetas())
+    router.enRuta('inicio',     () => this.mostrarInicio())
+    router.enRuta('sesion',     () => this.mostrarSesion())
+    router.enRuta('dashboard',  () => this.mostrarDashboard())
+    router.enRuta('gemini',     () => this.mostrarGemini())
+    router.enRuta('tarjetas',   () => this.mostrarTarjetas())
   }
 
   private cargarRutaInicial(): void {
@@ -76,8 +99,8 @@ class App {
   }
 
   private limpiarContenido(): void {
-    const content = document.getElementById('content')
-    if (content) content.innerHTML = ''
+    const c = document.getElementById('content')
+    if (c) c.innerHTML = ''
   }
 
   // ─── INICIO ──────────────────────────────────────────────────────────────────
@@ -90,10 +113,11 @@ class App {
     content.innerHTML = '<div id="mazo-list-container"></div>'
     this.mazoListView = new MazoListView('mazo-list-container')
     this.mazoListView.setEventHandlers({
-      onMazoClick: (mazo) => this.mostrarOpciones(mazo),
-      onEditClick: (mazo) => this.mostrarModalEditarMazo(mazo),
+      onMazoClick:   (mazo) => this.mostrarOpciones(mazo),
+      onEditClick:   (mazo) => this.mostrarModalEditarMazo(mazo),
       onDeleteClick: (mazo) => this.eliminarMazo(mazo.id),
-      onNewClick: () => this.mostrarModalCrearMazo(),
+      onNewClick:    ()     => this.mostrarModalCrearMazo(),
+      onImportClick: ()     => this.importarMazo(),
     })
     this.mazoListView.cargarMazos()
   }
@@ -106,30 +130,31 @@ class App {
       <div class="modal-backdrop" id="modal-mazo">
         <div class="modal-content max-w-md">
           <div class="card-header">
-            <h2 class="text-xl font-bold">Nuevo Mazo</h2>
+            <h2 class="text-lg font-bold text-neutral-900">Nuevo Mazo</h2>
+            <p class="text-sm text-neutral-500 mt-0.5">Los campos marcados con * son obligatorios</p>
           </div>
           <div class="p-6 space-y-4">
             <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Nombre *</label>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">Nombre *</label>
               <input id="input-nombre" type="text" class="input" placeholder="Ej: Patrones de Diseño" maxlength="100" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Descripción</label>
-              <textarea id="input-descripcion" class="input" rows="3" placeholder="Descripción opcional..."></textarea>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">Descripción</label>
+              <textarea id="input-descripcion" class="input" rows="2" placeholder="Descripción breve (opcional)..."></textarea>
             </div>
             <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Algoritmo</label>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">Algoritmo de repetición</label>
               <select id="input-algoritmo" class="input">
-                <option value="SM2">SM-2 (Recomendado)</option>
-                <option value="LEITNER">Leitner</option>
-                <option value="ALEATORIO">Aleatorio</option>
+                <option value="SM2">SM-2 — Repetición espaciada adaptativa (Recomendado)</option>
+                <option value="LEITNER">Leitner — Sistema de cajas</option>
+                <option value="ALEATORIO">Aleatorio — Sin algoritmo fijo</option>
               </select>
             </div>
             <p id="modal-error" class="text-danger-600 text-sm hidden"></p>
           </div>
-          <div class="flex gap-3 px-6 pb-6 justify-end">
+          <div class="flex gap-3 px-6 pb-6 justify-end border-t border-neutral-100 pt-4">
             <button id="btn-modal-cancelar" class="btn-secondary">Cancelar</button>
-            <button id="btn-modal-guardar" class="btn-accent">Crear Mazo</button>
+            <button id="btn-modal-guardar" class="btn-accent">Crear y agregar tarjetas</button>
           </div>
         </div>
       </div>
@@ -148,10 +173,10 @@ class App {
   }
 
   private async crearMazoDesdeModal(): Promise<void> {
-    const nombre = (document.getElementById('input-nombre') as HTMLInputElement)?.value?.trim()
+    const nombre      = (document.getElementById('input-nombre')      as HTMLInputElement)?.value?.trim()
     const descripcion = (document.getElementById('input-descripcion') as HTMLTextAreaElement)?.value?.trim()
-    const algoritmo = (document.getElementById('input-algoritmo') as HTMLSelectElement)?.value
-    const errorEl = document.getElementById('modal-error')
+    const algoritmo   = (document.getElementById('input-algoritmo')   as HTMLSelectElement)?.value
+    const errorEl     = document.getElementById('modal-error')
 
     if (!nombre) {
       if (errorEl) { errorEl.textContent = 'El nombre es obligatorio'; errorEl.classList.remove('hidden') }
@@ -162,9 +187,18 @@ class App {
     if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Creando...' }
 
     try {
-      await mazoController.crearMazo({ nombre, descripcion: descripcion || undefined, algoritmo: algoritmo as any })
+      const nuevoMazo = await mazoController.crearMazo({
+        nombre,
+        descripcion: descripcion || undefined,
+        algoritmo:   algoritmo as any,
+      })
       this.eliminarModal()
-      this.mostrarInicio()
+
+      // Ir directamente a agregar tarjetas al mazo recién creado
+      sessionStorage.setItem('lastMazoId',   nuevoMazo.id)
+      sessionStorage.setItem('lastMazoData', JSON.stringify(nuevoMazo))
+      router.navegar('tarjetas')
+
     } catch (error: any) {
       if (errorEl) {
         errorEl.textContent = error?.message?.includes('409') || error?.message?.includes('conflicto')
@@ -172,7 +206,7 @@ class App {
           : 'Error al crear el mazo. Inténtalo de nuevo.'
         errorEl.classList.remove('hidden')
       }
-      if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Crear Mazo' }
+      if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Crear y agregar tarjetas' }
     }
   }
 
@@ -182,30 +216,30 @@ class App {
       <div class="modal-backdrop" id="modal-mazo">
         <div class="modal-content max-w-md">
           <div class="card-header">
-            <h2 class="text-xl font-bold">Editar Mazo</h2>
+            <h2 class="text-lg font-bold text-neutral-900">Editar Mazo</h2>
           </div>
           <div class="p-6 space-y-4">
             <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Nombre *</label>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">Nombre *</label>
               <input id="input-nombre" type="text" class="input" value="${this.escaparAtributo(mazo.nombre)}" maxlength="100" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Descripción</label>
-              <textarea id="input-descripcion" class="input" rows="3">${mazo.descripcion ? this.escaparHTML(mazo.descripcion) : ''}</textarea>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">Descripción</label>
+              <textarea id="input-descripcion" class="input" rows="2">${mazo.descripcion ? this.escaparHTML(mazo.descripcion) : ''}</textarea>
             </div>
             <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Algoritmo</label>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">Algoritmo de repetición</label>
               <select id="input-algoritmo" class="input">
-                <option value="SM2" ${mazo.algoritmo === 'SM2' ? 'selected' : ''}>SM-2 (Recomendado)</option>
-                <option value="LEITNER" ${mazo.algoritmo === 'LEITNER' ? 'selected' : ''}>Leitner</option>
-                <option value="ALEATORIO" ${mazo.algoritmo === 'ALEATORIO' ? 'selected' : ''}>Aleatorio</option>
+                <option value="SM2"       ${mazo.algoritmo === 'SM2'       ? 'selected' : ''}>SM-2 — Repetición espaciada adaptativa</option>
+                <option value="LEITNER"   ${mazo.algoritmo === 'LEITNER'   ? 'selected' : ''}>Leitner — Sistema de cajas</option>
+                <option value="ALEATORIO" ${mazo.algoritmo === 'ALEATORIO' ? 'selected' : ''}>Aleatorio — Sin algoritmo fijo</option>
               </select>
             </div>
             <p id="modal-error" class="text-danger-600 text-sm hidden"></p>
           </div>
-          <div class="flex gap-3 px-6 pb-6 justify-end">
+          <div class="flex gap-3 px-6 pb-6 justify-end border-t border-neutral-100 pt-4">
             <button id="btn-modal-cancelar" class="btn-secondary">Cancelar</button>
-            <button id="btn-modal-guardar" class="btn-accent">Guardar</button>
+            <button id="btn-modal-guardar" class="btn-accent">Guardar cambios</button>
           </div>
         </div>
       </div>
@@ -222,10 +256,10 @@ class App {
   }
 
   private async guardarEdicionMazo(mazoId: string): Promise<void> {
-    const nombre = (document.getElementById('input-nombre') as HTMLInputElement)?.value?.trim()
+    const nombre      = (document.getElementById('input-nombre')      as HTMLInputElement)?.value?.trim()
     const descripcion = (document.getElementById('input-descripcion') as HTMLTextAreaElement)?.value?.trim()
-    const algoritmo = (document.getElementById('input-algoritmo') as HTMLSelectElement)?.value
-    const errorEl = document.getElementById('modal-error')
+    const algoritmo   = (document.getElementById('input-algoritmo')   as HTMLSelectElement)?.value
+    const errorEl     = document.getElementById('modal-error')
 
     if (!nombre) {
       if (errorEl) { errorEl.textContent = 'El nombre es obligatorio'; errorEl.classList.remove('hidden') }
@@ -236,12 +270,16 @@ class App {
     if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...' }
 
     try {
-      await mazoController.editarMazo(mazoId, { nombre, descripcion: descripcion || undefined, algoritmo: algoritmo as any })
+      await mazoController.editarMazo(mazoId, {
+        nombre,
+        descripcion: descripcion || undefined,
+        algoritmo:   algoritmo as any,
+      })
       this.eliminarModal()
       this.mostrarInicio()
-    } catch (error: any) {
+    } catch {
       if (errorEl) { errorEl.textContent = 'Error al guardar cambios'; errorEl.classList.remove('hidden') }
-      if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar' }
+      if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar cambios' }
     }
   }
 
@@ -250,23 +288,32 @@ class App {
     document.querySelector('.modal-backdrop')?.remove()
   }
 
-  // ─── OPCIONES MAZO ───────────────────────────────────────────────────────────
+  // ─── OPCIONES DEL MAZO ───────────────────────────────────────────────────────
 
   private mostrarOpciones(mazo: Mazo): void {
     this.eliminarModal()
+    const total = mazo.totalTarjetas ?? mazo.total_tarjetas ?? 0
     const modal = `
       <div class="modal-backdrop" id="modal-mazo">
         <div class="modal-content max-w-sm">
           <div class="card-header">
-            <h2 class="text-xl font-bold text-neutral-900">${this.escaparHTML(mazo.nombre)}</h2>
-            <p class="text-sm text-neutral-500 mt-1">${mazo.totalTarjetas ?? mazo.total_tarjetas ?? 0} tarjetas</p>
+            <h2 class="text-lg font-bold text-neutral-900">${this.escaparHTML(mazo.nombre)}</h2>
+            <p class="text-sm text-neutral-500 mt-0.5">
+              ${total} tarjeta${total !== 1 ? 's' : ''}
+              &bull; ${mazo.algoritmo || 'SM2'}
+            </p>
           </div>
-          <div class="p-6 space-y-3">
-            <button id="btn-estudiar" class="btn-accent w-full">Estudiar Ahora</button>
-            <button id="btn-gestionar-tarjetas" class="btn-secondary w-full">Gestionar Tarjetas</button>
-            <button id="btn-ver-progreso" class="btn-secondary w-full">Ver Progreso</button>
-            <button id="btn-analizar-ia" class="btn-secondary w-full">Analizar con IA</button>
-            <button id="btn-modal-cancelar" class="btn-outline w-full">Cerrar</button>
+          <div class="p-6 space-y-2">
+            <button id="btn-estudiar"          class="btn-accent    w-full">Estudiar ahora</button>
+            <button id="btn-gestionar-tarjetas" class="btn-secondary w-full">Gestionar tarjetas</button>
+            <button id="btn-analizar-ia"        class="btn-secondary w-full">Analizar con IA</button>
+            <button id="btn-ver-progreso"       class="btn-secondary w-full">Ver progreso</button>
+            <hr class="border-neutral-200 my-2">
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btn-exportar-json"   class="btn-secondary text-sm">Exportar JSON</button>
+              <button id="btn-exportar-csv"    class="btn-secondary text-sm">Exportar CSV</button>
+            </div>
+            <button id="btn-modal-cancelar" class="btn-outline w-full mt-2">Cerrar</button>
           </div>
         </div>
       </div>
@@ -278,19 +325,27 @@ class App {
       this.iniciarSesion(mazo.id)
     })
     document.getElementById('btn-gestionar-tarjetas')?.addEventListener('click', () => {
-      sessionStorage.setItem('lastMazoId', mazo.id)
+      sessionStorage.setItem('lastMazoId',   mazo.id)
       sessionStorage.setItem('lastMazoData', JSON.stringify(mazo))
       this.eliminarModal()
       router.navegar('tarjetas')
+    })
+    document.getElementById('btn-analizar-ia')?.addEventListener('click', () => {
+      this.eliminarModal()
+      this.analizarConGemini(mazo.id)
     })
     document.getElementById('btn-ver-progreso')?.addEventListener('click', () => {
       sessionStorage.setItem('lastMazoId', mazo.id)
       this.eliminarModal()
       router.navegar('dashboard')
     })
-    document.getElementById('btn-analizar-ia')?.addEventListener('click', () => {
+    document.getElementById('btn-exportar-json')?.addEventListener('click', () => {
       this.eliminarModal()
-      this.analizarConGemini(mazo.id)
+      this.exportarMazo(mazo, 'json')
+    })
+    document.getElementById('btn-exportar-csv')?.addEventListener('click', () => {
+      this.eliminarModal()
+      this.exportarMazo(mazo, 'csv')
     })
     document.getElementById('btn-modal-cancelar')?.addEventListener('click', () => this.eliminarModal())
     document.getElementById('modal-mazo')?.addEventListener('click', (e) => {
@@ -298,19 +353,66 @@ class App {
     })
   }
 
+  // ─── EXPORTAR ────────────────────────────────────────────────────────────────
+
+  private async exportarMazo(mazo: Mazo, formato: 'json' | 'csv'): Promise<void> {
+    try {
+      this.mostrarCargando(`Exportando "${mazo.nombre}"...`)
+      const blob = await mazoController.exportarMazo(mazo.id, formato)
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `${mazo.nombre.replace(/[^a-z0-9]/gi, '_')}.${formato}`
+      a.click()
+      URL.revokeObjectURL(url)
+      this.mostrarInicio()
+    } catch {
+      this.mostrarAlerta('Error al exportar el mazo. Inténtalo de nuevo.', 'danger')
+      setTimeout(() => router.navegar('inicio'), 2500)
+    }
+  }
+
+  // ─── IMPORTAR ────────────────────────────────────────────────────────────────
+
+  private importarMazo(): void {
+    const input = document.createElement('input')
+    input.type   = 'file'
+    input.accept = '.json'
+    input.style.display = 'none'
+    document.body.appendChild(input)
+
+    input.addEventListener('change', async () => {
+      const archivo = input.files?.[0]
+      document.body.removeChild(input)
+      if (!archivo) return
+
+      try {
+        this.mostrarCargando(`Importando "${archivo.name}"...`)
+        await mazoController.importarMazo(archivo)
+        this.mostrarAlerta('Mazo importado correctamente.', 'success')
+        setTimeout(() => router.navegar('inicio'), 1500)
+      } catch {
+        this.mostrarAlerta('Error al importar. Asegúrate de que el archivo es un JSON válido exportado desde StudyFlow.', 'danger')
+        setTimeout(() => router.navegar('inicio'), 3000)
+      }
+    })
+
+    input.click()
+  }
+
   // ─── SESIÓN ───────────────────────────────────────────────────────────────────
 
   private async iniciarSesion(mazoId: string): Promise<void> {
     try {
-      this.mostrarCargando('Iniciando sesión de estudio...')
+      this.mostrarCargando('Preparando sesión de estudio...')
       await sesionController.iniciarSesion({ mazoId })
       router.navegar('sesion')
     } catch (error: any) {
       this.limpiarContenido()
       this.mostrarAlerta(
         error?.message?.includes('pendientes') || error?.message?.includes('hoy')
-          ? 'No hay tarjetas pendientes para estudiar hoy. Vuelve mañana o agrega nuevas tarjetas.'
-          : 'Error al iniciar sesión de estudio.',
+          ? 'No hay tarjetas pendientes para hoy. Vuelve mañana o agrega nuevas tarjetas.'
+          : 'Error al iniciar la sesión de estudio.',
         'warning'
       )
       setTimeout(() => router.navegar('inicio'), 3000)
@@ -328,9 +430,9 @@ class App {
     const sesion = sesionController.obtenerSesionActiva()
     if (sesion) {
       this.sesionView.setEventHandlers({
+        // Solo se llama cuando la sesión realmente termina (última tarjeta)
         onSesionFinalizada: () => {
           sesionController.finalizarSesion().catch(console.error)
-          setTimeout(() => router.navegar('inicio'), 1500)
         },
         onSesionCancelada: () => router.navegar('inicio'),
       })
@@ -365,17 +467,13 @@ class App {
 
   private mostrarTarjetas(): void {
     const mazoDataRaw = sessionStorage.getItem('lastMazoData')
-    if (!mazoDataRaw) {
-      router.navegar('inicio')
-      return
-    }
+    if (!mazoDataRaw) { router.navegar('inicio'); return }
 
     let mazo: Mazo
     try {
       mazo = JSON.parse(mazoDataRaw) as Mazo
     } catch {
-      router.navegar('inicio')
-      return
+      router.navegar('inicio'); return
     }
 
     this.limpiarContenido()
@@ -416,19 +514,19 @@ class App {
       this.geminiView.setEventHandlers({
         onAceptarClick: async (tarjetas) => {
           try {
-            this.mostrarCargando('Agregando tarjetas al mazo...')
+            this.mostrarCargando(`Agregando ${tarjetas.length} tarjeta${tarjetas.length !== 1 ? 's' : ''} al mazo...`)
             await geminiController.aceptarTarjetasSugeridas(mazoId, tarjetas)
-            this.mostrarAlerta(`Se agregaron ${tarjetas.length} tarjeta(s) al mazo.`, 'success')
+            this.mostrarAlerta(`${tarjetas.length} tarjeta${tarjetas.length !== 1 ? 's' : ''} agregada${tarjetas.length !== 1 ? 's' : ''} correctamente.`, 'success')
             setTimeout(() => router.navegar('inicio'), 2000)
-          } catch (error) {
-            this.mostrarAlerta('Error al agregar tarjetas. Inténtalo de nuevo.', 'danger')
+          } catch {
+            this.mostrarAlerta('Error al agregar las tarjetas. Inténtalo de nuevo.', 'danger')
           }
         },
         onCancelarClick: () => router.navegar('inicio'),
       })
       this.geminiView.mostrarAnalisis(analisis)
-    } catch (error: any) {
-      this.mostrarAlerta('No fue posible analizar el mazo con IA en este momento.', 'danger')
+    } catch {
+      this.mostrarAlerta('No fue posible analizar el mazo con IA en este momento. Inténtalo de nuevo.', 'danger')
       setTimeout(() => router.navegar('inicio'), 3000)
     }
   }
@@ -440,9 +538,10 @@ class App {
       await mazoController.eliminarMazo(mazoId)
       if (sessionStorage.getItem('lastMazoId') === mazoId) {
         sessionStorage.removeItem('lastMazoId')
+        sessionStorage.removeItem('lastMazoData')
       }
       this.mostrarInicio()
-    } catch (error) {
+    } catch {
       this.mostrarAlerta('Error al eliminar el mazo.', 'danger')
     }
   }
@@ -454,9 +553,9 @@ class App {
     const content = document.getElementById('content')
     if (!content) return
     content.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="flex flex-col items-center justify-center py-24 gap-4">
         <div class="w-10 h-10 border-4 border-accent-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-neutral-600">${this.escaparHTML(mensaje)}</p>
+        <p class="text-neutral-500 text-sm">${this.escaparHTML(mensaje)}</p>
       </div>
     `
   }
@@ -466,14 +565,14 @@ class App {
     const content = document.getElementById('content')
     if (!content) return
     const clases: Record<string, string> = {
-      success: 'bg-success-50 border-success-200 text-success-700',
-      warning: 'bg-warning-50 border-warning-200 text-warning-700',
-      danger: 'bg-danger-50 border-danger-200 text-danger-700',
-      info: 'bg-neutral-50 border-neutral-200 text-neutral-700',
+      success: 'bg-success-50 border-success-300 text-success-700',
+      warning: 'bg-warning-50 border-warning-300 text-warning-700',
+      danger:  'bg-danger-50  border-danger-300  text-danger-700',
+      info:    'bg-accent-50  border-accent-300  text-accent-700',
     }
     content.innerHTML = `
-      <div class="max-w-md mx-auto mt-16 p-6 border rounded-lg ${clases[tipo]}">
-        <p class="text-center">${this.escaparHTML(mensaje)}</p>
+      <div class="max-w-sm mx-auto mt-20 p-6 border rounded-md ${clases[tipo]} text-center">
+        <p>${this.escaparHTML(mensaje)}</p>
       </div>
     `
   }

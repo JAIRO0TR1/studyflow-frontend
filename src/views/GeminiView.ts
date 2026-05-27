@@ -31,91 +31,117 @@ export class GeminiView {
   mostrarAnalisis(analisis: AnalisiaGeminiResponse): void {
     this.analisis = analisis
     this.tarjetasSeleccionadas.clear()
+    // Pre-seleccionar todas las tarjetas
+    analisis.tarjetasSugeridas.forEach((_, idx) => this.tarjetasSeleccionadas.add(idx))
     this.renderizar()
   }
 
   private renderizar(): void {
     if (!this.analisis) return
 
+    // Si el backend devuelve temasNoDetectados vacío, derivarlos de las tarjetas sugeridas
+    const temasDetectados = this.analisis.temasDetectados.length > 0
+      ? this.analisis.temasDetectados
+      : []
+
+    const temasFaltantes = this.analisis.temasNoDetectados.length > 0
+      ? this.analisis.temasNoDetectados
+      : this.analisis.tarjetasSugeridas.map(t =>
+          t.frente.length > 55 ? t.frente.substring(0, 55) + '…' : t.frente
+        )
+
+    const seleccionadas = this.tarjetasSeleccionadas.size
+    const total = this.analisis.tarjetasSugeridas.length
+
     this.container.innerHTML = `
-      <div class="max-w-4xl">
-        <div class="mb-8">
-          <h2 class="text-2xl font-bold text-neutral-900 mb-2">Análisis de Mazo con IA</h2>
-          <p class="text-neutral-600">
-            La IA ha analizado tu mazo y sugerido nuevas tarjetas para completar los temas faltantes.
+      <div class="max-w-3xl animate-fade-in">
+
+        <!-- Cabecera -->
+        <div class="page-header">
+          <h2 class="page-title">Análisis con Inteligencia Artificial</h2>
+          <p class="page-subtitle">
+            Gemini analizó tu mazo y generó tarjetas para cubrir los temas faltantes.
+            Revisa y selecciona las que deseas agregar.
           </p>
         </div>
 
-        <!-- Resumen del análisis -->
-        <div class="card mb-8">
-          <h3 class="font-bold text-lg mb-4 text-neutral-900">Resumen del Análisis</h3>
-          <p class="text-neutral-700 mb-6">${this.escaparHTML(this.analisis.resumen)}</p>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-success-50 p-4 rounded-lg border border-success-200">
-              <p class="text-sm text-success-700 font-medium mb-1">Temas cubiertos</p>
-              <p class="text-3xl font-bold text-success-600">${this.analisis.temasDetectados.length}</p>
-            </div>
-            <div class="bg-warning-50 p-4 rounded-lg border border-warning-200">
-              <p class="text-sm text-warning-700 font-medium mb-1">Temas faltantes</p>
-              <p class="text-3xl font-bold text-warning-600">${this.analisis.temasNoDetectados.length}</p>
-            </div>
+        <!-- Resumen de cobertura -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div class="card text-center">
+            <p class="text-3xl font-bold text-success-600 mb-1">${temasDetectados.length}</p>
+            <p class="text-xs text-neutral-500 uppercase tracking-wide font-medium">Temas cubiertos</p>
+          </div>
+          <div class="card text-center">
+            <p class="text-3xl font-bold text-warning-600 mb-1">${temasFaltantes.length}</p>
+            <p class="text-xs text-neutral-500 uppercase tracking-wide font-medium">Temas faltantes</p>
+          </div>
+          <div class="card text-center">
+            <p class="text-3xl font-bold text-accent-600 mb-1">${total}</p>
+            <p class="text-xs text-neutral-500 uppercase tracking-wide font-medium">Tarjetas nuevas</p>
           </div>
         </div>
 
         <!-- Temas detectados y faltantes -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div class="card">
-            <h4 class="font-bold text-success-700 mb-4">Temas Cubiertos</h4>
+            <h4 class="text-xs font-semibold text-success-700 uppercase tracking-wide mb-3">
+              Temas cubiertos en el mazo
+            </h4>
             <div class="flex flex-wrap gap-2">
-              ${this.analisis.temasDetectados.map(tema => `
-                <span class="badge badge-success">
-                  ${this.escaparHTML(tema)}
-                </span>
-              `).join('')}
+              ${temasDetectados.length > 0
+                ? temasDetectados.map(t => `
+                    <span class="badge badge-success">${this.escaparHTML(t)}</span>
+                  `).join('')
+                : `<p class="text-sm text-neutral-400 italic">Sin datos de cobertura disponibles</p>`
+              }
             </div>
           </div>
 
           <div class="card">
-            <h4 class="font-bold text-warning-700 mb-4">Temas Faltantes</h4>
+            <h4 class="text-xs font-semibold text-warning-700 uppercase tracking-wide mb-3">
+              Temas que se agregarán
+            </h4>
             <div class="flex flex-wrap gap-2">
-              ${this.analisis.temasNoDetectados.map(tema => `
-                <span class="badge badge-warning">
-                  ${this.escaparHTML(tema)}
-                </span>
-              `).join('')}
+              ${temasFaltantes.length > 0
+                ? temasFaltantes.map(t => `
+                    <span class="badge badge-warning">${this.escaparHTML(t)}</span>
+                  `).join('')
+                : `<p class="text-sm text-neutral-400 italic">No se detectaron temas faltantes</p>`
+              }
             </div>
           </div>
         </div>
 
         <!-- Tarjetas sugeridas -->
         <div class="mb-8">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="font-bold text-lg text-neutral-900">
-              Tarjetas Sugeridas (${this.analisis.tarjetasSugeridas.length})
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold text-neutral-800">
+              Tarjetas sugeridas
+              <span class="ml-2 badge badge-accent">${seleccionadas} / ${total} seleccionadas</span>
             </h3>
-            <label class="flex items-center gap-2 text-sm text-neutral-600 cursor-pointer">
+            <label class="flex items-center gap-2 text-sm text-neutral-600 cursor-pointer select-none">
               <input
                 type="checkbox"
                 id="select-all"
-                class="w-4 h-4 rounded border-neutral-300 focus:ring-accent-500"
+                class="w-4 h-4 rounded border-neutral-300 text-accent-500 focus:ring-accent-400"
+                ${seleccionadas === total && total > 0 ? 'checked' : ''}
               />
               Seleccionar todas
             </label>
           </div>
 
           <div class="space-y-3">
-            ${this.analisis.tarjetasSugeridas.map((tarjeta, idx) => this.renderizarTarjetaSugerida(tarjeta, idx)).join('')}
+            ${this.analisis.tarjetasSugeridas.map((t, idx) => this.renderizarTarjeta(t, idx)).join('')}
           </div>
         </div>
 
         <!-- Botones de acción -->
-        <div class="flex gap-4 justify-end pt-6 border-t border-neutral-200">
+        <div class="flex gap-3 justify-between pt-6 border-t border-neutral-200">
           <button id="btn-cancelar" class="btn-secondary">
-            Rechazar
+            Descartar sugerencias
           </button>
           <button id="btn-aceptar" class="btn-accent">
-            Agregar ${this.tarjetasSeleccionadas.size} tarjeta(s)
+            Agregar ${seleccionadas} tarjeta${seleccionadas !== 1 ? 's' : ''} al mazo
           </button>
         </div>
       </div>
@@ -124,32 +150,37 @@ export class GeminiView {
     this.attachEventListeners()
   }
 
-  private renderizarTarjetaSugerida(tarjeta: TarjetaSugerida, indice: number): string {
+  private renderizarTarjeta(tarjeta: TarjetaSugerida, indice: number): string {
     const isSelected = this.tarjetasSeleccionadas.has(indice)
+    const confianzaPct = tarjeta.confianza ? Math.round(tarjeta.confianza * 100) : null
+
     return `
-      <div class="card flex gap-4 items-start hover-shadow">
+      <div class="card flex gap-4 items-start ${isSelected ? 'border-accent-300 bg-accent-50/30' : ''} transition-colors">
         <input
           type="checkbox"
-          class="tarjeta-checkbox w-5 h-5 mt-2 flex-shrink-0 rounded border-neutral-300 focus:ring-accent-500 cursor-pointer"
+          class="tarjeta-checkbox w-4 h-4 mt-1 flex-shrink-0 rounded border-neutral-300 text-accent-500 focus:ring-accent-400 cursor-pointer"
           data-index="${indice}"
           ${isSelected ? 'checked' : ''}
         />
-        <div class="flex-1">
-          <div class="mb-4">
-            <p class="text-xs text-neutral-500 font-medium uppercase mb-2">Pregunta</p>
-            <p class="font-bold text-neutral-900">${this.escaparHTML(tarjeta.frente)}</p>
+        <div class="flex-1 min-w-0">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-neutral-400 font-semibold uppercase tracking-wide mb-1">Pregunta</p>
+              <p class="text-sm font-semibold text-neutral-900">${this.escaparHTML(tarjeta.frente)}</p>
+            </div>
+            <div>
+              <p class="text-xs text-neutral-400 font-semibold uppercase tracking-wide mb-1">Respuesta</p>
+              <p class="text-sm text-neutral-700">${this.escaparHTML(tarjeta.reverso)}</p>
+            </div>
           </div>
-          <div class="mb-4">
-            <p class="text-xs text-neutral-500 font-medium uppercase mb-2">Respuesta</p>
-            <p class="text-neutral-700">${this.escaparHTML(tarjeta.reverso)}</p>
-          </div>
-          ${
-            tarjeta.confianza
-              ? `<div class="inline-block px-3 py-1 bg-neutral-100 rounded text-xs text-neutral-600">
-                   Confianza: ${Math.round(tarjeta.confianza * 100)}%
-                 </div>`
-              : ''
-          }
+          ${confianzaPct !== null ? `
+            <div class="mt-3 flex items-center gap-2">
+              <div class="flex-1 h-1 bg-neutral-200 rounded-full overflow-hidden">
+                <div class="h-full bg-accent-400 rounded-full" style="width: ${confianzaPct}%"></div>
+              </div>
+              <span class="text-xs text-neutral-400">Relevancia ${confianzaPct}%</span>
+            </div>
+          ` : ''}
         </div>
       </div>
     `
@@ -165,11 +196,11 @@ export class GeminiView {
         } else {
           this.tarjetasSeleccionadas.delete(index)
         }
-        this.actualizarBotones()
+        this.actualizarContadores()
       })
     })
 
-    // Seleccionar todas
+    // Seleccionar / deseleccionar todas
     document.getElementById('select-all')?.addEventListener('change', (e) => {
       if ((e.target as HTMLInputElement).checked) {
         this.analisis?.tarjetasSugeridas.forEach((_, idx) => {
@@ -181,21 +212,22 @@ export class GeminiView {
       this.renderizar()
     })
 
-    // Botones
+    // Botón rechazar
     document.getElementById('btn-cancelar')?.addEventListener('click', () => {
-      if (confirm('Descartar las tarjetas sugeridas?')) {
+      if (confirm('¿Descartar todas las tarjetas sugeridas por la IA?')) {
         geminiController.rechazarTarjetasSugeridas()
         this.onCancelarClick?.()
       }
     })
 
+    // Botón aceptar
     document.getElementById('btn-aceptar')?.addEventListener('click', () => {
       const tarjetasAceptadas = this.analisis!.tarjetasSugeridas.filter((_, idx) =>
         this.tarjetasSeleccionadas.has(idx)
       )
 
       if (tarjetasAceptadas.length === 0) {
-        alert('Selecciona al menos una tarjeta')
+        alert('Selecciona al menos una tarjeta para agregar al mazo.')
         return
       }
 
@@ -203,11 +235,29 @@ export class GeminiView {
     })
   }
 
-  private actualizarBotones(): void {
-    const btnAceptar = document.getElementById('btn-aceptar')
-    if (btnAceptar) {
-      btnAceptar.textContent = `Agregar ${this.tarjetasSeleccionadas.size} tarjeta(s)`
-    }
+  private actualizarContadores(): void {
+    const n = this.tarjetasSeleccionadas.size
+
+    // Actualizar badge del título
+    const badge = document.querySelector('.badge-accent')
+    if (badge) badge.textContent = `${n} / ${this.analisis?.tarjetasSugeridas.length} seleccionadas`
+
+    // Actualizar botón aceptar
+    const btn = document.getElementById('btn-aceptar')
+    if (btn) btn.textContent = `Agregar ${n} tarjeta${n !== 1 ? 's' : ''} al mazo`
+
+    // Actualizar estilos de cards
+    document.querySelectorAll('.tarjeta-checkbox').forEach(cb => {
+      const idx = parseInt((cb as HTMLInputElement).getAttribute('data-index') || '0')
+      const card = cb.closest('.card') as HTMLElement | null
+      if (card) {
+        if (this.tarjetasSeleccionadas.has(idx)) {
+          card.classList.add('border-accent-300', 'bg-accent-50/30')
+        } else {
+          card.classList.remove('border-accent-300', 'bg-accent-50/30')
+        }
+      }
+    })
   }
 
   private escaparHTML(texto: string): string {

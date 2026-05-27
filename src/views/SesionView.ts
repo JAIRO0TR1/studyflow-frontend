@@ -231,15 +231,41 @@ export class SesionView {
   private mostrarCompletado(resultado: RespuestaRegistro): void {
     const stats  = resultado.estadisticas
     const pct    = stats?.porcentaje ?? 0
-    const tiempo = this.formatearTiempo(this.segundosTranscurridos)
+    const seg    = this.segundosTranscurridos
+    const tiempo = this.formatearTiempo(seg)
+    const esSesionCorta = seg < 60
 
-    if (pct >= 60) this.confetti()
+    // Acumular tiempo real en localStorage (en segundos, por día)
+    SesionView.acumularTiempoLocal(seg)
+
+    if (pct >= 60 && !esSesionCorta) this.confetti()
 
     const gradoColor = pct >= 80 ? '#059669' : pct >= 60 ? '#0ea5e9' : '#f59e0b'
     const grado      = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B' : pct >= 60 ? 'C' : 'D'
 
     this.container.innerHTML = `
       <div class="max-w-md mx-auto text-center py-6 animate-bounce-in">
+
+        ${esSesionCorta ? `
+          <!-- Alerta sesión corta -->
+          <div class="mb-5 rounded-2xl p-4 text-left flex gap-3 items-start"
+            style="background:#fef3c7;border:1.5px solid #fcd34d">
+            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+              stroke="#d97706" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+                  2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898
+                  0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+            </svg>
+            <div>
+              <p class="font-semibold text-amber-800 text-sm">Sesión muy corta</p>
+              <p class="text-amber-700 text-xs mt-0.5">
+                Solo estudiaste ${tiempo}. Las sesiones de al menos 5 minutos
+                son más efectivas para la retención a largo plazo.
+              </p>
+            </div>
+          </div>
+        ` : ''}
 
         <!-- Icono y grado -->
         <div class="mb-5">
@@ -296,6 +322,20 @@ export class SesionView {
       </div>
     `
     document.getElementById('btn-volver')?.addEventListener('click', () => this.onSesionCancelada?.())
+  }
+
+  // Acumula los segundos de esta sesión en localStorage bajo la clave del día actual
+  static acumularTiempoLocal(segundos: number): void {
+    const hoy = new Date().toISOString().slice(0, 10) // 'YYYY-MM-DD'
+    const key = `sf_tiempo_${hoy}`
+    const prev = parseInt(localStorage.getItem(key) ?? '0', 10)
+    localStorage.setItem(key, String(prev + segundos))
+  }
+
+  // Devuelve los segundos acumulados hoy (lectura estática)
+  static obtenerTiempoHoySegundos(): number {
+    const hoy = new Date().toISOString().slice(0, 10)
+    return parseInt(localStorage.getItem(`sf_tiempo_${hoy}`) ?? '0', 10)
   }
 
   // ─── UTILIDADES ──────────────────────────────────────────────────────────────

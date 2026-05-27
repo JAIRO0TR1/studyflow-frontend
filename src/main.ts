@@ -111,17 +111,9 @@ class App {
           <div class="main-container flex justify-between items-center py-3">
 
             <!-- Logo -->
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm"
-                style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25)">
-                <span class="text-white font-black text-sm tracking-tight">SF</span>
-              </div>
-              <div>
-                <h1 class="text-lg font-black text-white tracking-wide leading-none">StudyFlow</h1>
-                <p class="text-xs text-white/45 hidden sm:block leading-none mt-0.5">
-                  Tarjetas Inteligentes &bull; Gemini AI
-                </p>
-              </div>
+            <div class="flex items-center gap-2">
+              <img src="/logo.png" alt="StudyFlow" class="h-10 w-auto drop-shadow-md"
+                style="filter:brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.4))" />
             </div>
 
             <!-- Nav + usuario -->

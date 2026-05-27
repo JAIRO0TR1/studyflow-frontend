@@ -12,6 +12,7 @@ import type { EstadisticasGlobales } from '@/models/Progreso'
 import { mazoController } from '@/controllers/MazoController'
 import { progresoController } from '@/controllers/ProgresoController'
 import { renderizarRacha, obtenerTierRacha } from './RachaView'
+import { SesionView } from './SesionView'
 
 // 6 paletas de color para mazos
 const PALETAS = [
@@ -110,7 +111,10 @@ export class MazoListView {
     const racha        = e?.rachaActual ?? 0
     const intentosHoy  = e?.intentosHoy ?? 0
     const aciertosHoy  = e?.aciertosHoy ?? 0
-    const tiempoHoy    = e?.tiempoEstudiadoHoy ?? 0
+    const tiempoLocalSeg = SesionView.obtenerTiempoHoySegundos()
+    const tiempoHoy    = tiempoLocalSeg > 0
+      ? tiempoLocalSeg / 60
+      : (e?.tiempoEstudiadoHoy ?? 0)
     const precHoy      = intentosHoy > 0 ? Math.round((aciertosHoy / intentosHoy) * 100) : 0
     const tierRacha    = obtenerTierRacha(racha)
     const saludo       = this.obtenerSaludo()

@@ -5,6 +5,7 @@
 import type { Progreso, EstadisticasGlobales } from '@/models/Progreso'
 import { progresoController } from '@/controllers/ProgresoController'
 import { renderizarTarjetaRacha } from './RachaView'
+import { SesionView } from './SesionView'
 
 interface Logro {
   id:          string
@@ -64,7 +65,11 @@ export class DashboardView {
     const rachaActual   = e.rachaActual   ?? 0
     const aciertosHoy   = e.aciertosHoy  ?? 0
     const intentosHoy   = e.intentosHoy  ?? 0
-    const tiempoMin     = e.tiempoEstudiadoHoy ?? 0
+    // Usar tiempo acumulado localmente (segundos) para evitar errores de unidad del backend
+    const tiempoLocalSeg = SesionView.obtenerTiempoHoySegundos()
+    const tiempoMin      = tiempoLocalSeg > 0
+      ? tiempoLocalSeg / 60
+      : (e.tiempoEstudiadoHoy ?? 0)
     const precHoy       = intentosHoy > 0 ? Math.round((aciertosHoy / intentosHoy) * 100) : 0
     const logros        = this.obtenerLogros()
 

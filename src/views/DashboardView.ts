@@ -330,8 +330,13 @@ export class DashboardView {
   }
 
   private fmtTiempo(min: number): string {
-    if (min < 1)  return '0 min'
-    if (min < 60) return `${Math.round(min)} min`
+    const totalSeg = Math.round(min * 60)
+    if (totalSeg < 60) return totalSeg > 0 ? `${totalSeg}s` : '0s'
+    if (min < 60) {
+      const m = Math.floor(min)
+      const s = Math.round((min - m) * 60)
+      return s > 0 ? `${m}m ${s}s` : `${m}m`
+    }
     const h = Math.floor(min / 60)
     const m = Math.round(min % 60)
     return m > 0 ? `${h}h ${m}m` : `${h}h`

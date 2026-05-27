@@ -112,7 +112,7 @@ class App {
 
             <!-- Logo -->
             <div class="flex items-center gap-2">
-              <img src="/logo.png" alt="StudyFlow" class="h-10 w-auto drop-shadow-md"
+              <img src="/logo.png" alt="StudyFlow" class="h-14 w-auto drop-shadow-md"
                 style="filter:brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.4))" />
             </div>
 

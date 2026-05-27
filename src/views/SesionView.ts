@@ -233,7 +233,11 @@ export class SesionView {
     const pct    = stats?.porcentaje ?? 0
     const seg    = this.segundosTranscurridos
     const tiempo = this.formatearTiempo(seg)
-    const esSesionCorta = seg < 60
+
+    // Mínimo recomendado: 5 segundos por tarjeta respondida
+    const totalTarjetas     = this.sesion?.totalTarjetas ?? 1
+    const minimoRecomendado = totalTarjetas * 5
+    const esSesionCorta     = seg < minimoRecomendado
 
     // Acumular tiempo real en localStorage (en segundos, por día)
     SesionView.acumularTiempoLocal(seg)
@@ -260,8 +264,8 @@ export class SesionView {
             <div>
               <p class="font-semibold text-amber-800 text-sm">Sesión muy corta</p>
               <p class="text-amber-700 text-xs mt-0.5">
-                Solo estudiaste ${tiempo}. Las sesiones de al menos 5 minutos
-                son más efectivas para la retención a largo plazo.
+                Solo estudiaste ${tiempo} para ${totalTarjetas} tarjeta${totalTarjetas !== 1 ? 's' : ''}.
+                Se recomiendan al menos 5 segundos por tarjeta para una mejor retención.
               </p>
             </div>
           </div>

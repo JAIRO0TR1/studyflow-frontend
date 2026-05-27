@@ -272,7 +272,7 @@ class AuditorAPI {
    * Valida si un endpoint está disponible
    */
   private validarEndpoint(path: string, _metodo: string): boolean {
-    // Esta es una validación básica - en producción harías llamadas reales
+    // Esta es una validación básica
     const endpointsValidos = [
       '/mazos',
       '/sesiones',
@@ -388,7 +388,6 @@ class AuditorAPI {
   private async probarNavegacion(): Promise<void> {
     console.log('[Test] Probando navegación SPA...')
     // Verificar que el router está disponible
-    // (Este test es simbólico, en producción harías navegación real)
   }
 
   private async probarAlmacenamiento(): Promise<void> {

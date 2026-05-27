@@ -4,6 +4,7 @@
 
 import type { Progreso, EstadisticasGlobales } from '@/models/Progreso'
 import { progresoController } from '@/controllers/ProgresoController'
+import { renderizarTarjetaRacha } from './RachaView'
 
 interface Logro {
   id:          string
@@ -76,11 +77,13 @@ export class DashboardView {
           <p class="page-subtitle">Estadísticas combinadas de todos tus mazos</p>
         </div>
 
-        <!-- Stats principales -->
+        <!-- Stats principales con racha llamativa -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           ${this.statCard('Mazos creados',    totalMazos,                             'stat-card-indigo',  '#6366f1', 'M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25')}
           ${this.statCard('Tarjetas totales', totalTarjetas,                          'stat-card-teal',    '#14b8a6', 'M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 0 0 4.5 9v.878m13.5-3A2.25 2.25 0 0 1 19.5 9v.878m0 0a2.246 2.246 0 0 0-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0 1 21 12v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6c0-.98.626-1.813 1.5-2.122')}
-          ${this.statCard('Racha actual',     rachaActual, 'stat-card-amber', '#f59e0b', 'M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z', rachaActual === 0 ? 'Sin racha' : rachaActual === 1 ? '1 día' : `${rachaActual} días`)}
+          <div class="card stat-card stat-card-amber">
+            ${renderizarTarjetaRacha(rachaActual, { size: 'md' })}
+          </div>
         </div>
 
         <!-- Actividad de hoy -->
@@ -227,7 +230,9 @@ export class DashboardView {
 
           <!-- Stats cuadrícula -->
           <div class="grid grid-cols-2 gap-3">
-            ${this.statCard('Racha',      racha,         'stat-card-amber',   '#f59e0b', 'M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z', racha === 0 ? 'Sin racha' : `${racha} día${racha !== 1 ? 's' : ''}`)}
+            <div class="card stat-card stat-card-amber">
+              ${renderizarTarjetaRacha(racha, { size: 'md' })}
+            </div>
             ${this.statCard('Precisión',  precAciertos,  'stat-card-indigo',  '#6366f1', 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z', progresoController.formatearPorcentaje(precAciertos))}
             ${this.statCard('Estimado',   diasRest,      'stat-card-teal',    '#14b8a6', 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5', diasRest === 0 ? 'Completado' : `${diasRest} días`)}
             ${this.statCard('Dominadas',  dominadas,     'stat-card-emerald', '#10b981', 'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.606 50.606 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5', `${dominadas}/${dominadas + pendientes}`)}

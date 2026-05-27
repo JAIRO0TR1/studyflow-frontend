@@ -251,6 +251,10 @@ class App {
       onDeleteClick: (mazo) => this.eliminarMazo(mazo.id),
       onNewClick:    ()     => this.mostrarModalCrearMazo(),
       onImportClick: ()     => this.importarMazo(),
+      onVerProgresoClick: () => {
+        sessionStorage.removeItem('lastMazoId')
+        router.navegar('dashboard')
+      },
     })
     this.mazoListView.cargarMazos()
   }

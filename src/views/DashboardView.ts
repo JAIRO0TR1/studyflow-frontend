@@ -27,8 +27,7 @@ export class DashboardView {
     try {
       this.progreso = await progresoController.obtenerProgresoMazo(mazoId)
       this.renderizar()
-    } catch (error) {
-      console.error('Error al cargar progreso:', error)
+    } catch {
       this.mostrarError('Error al cargar estadísticas')
     }
   }
@@ -37,8 +36,7 @@ export class DashboardView {
     try {
       this.estadisticasGlobales = await progresoController.obtenerEstadisticasGlobales()
       this.renderizarGlobales()
-    } catch (error) {
-      console.error('Error al cargar estadísticas globales:', error)
+    } catch {
       this.mostrarError('Error al cargar estadísticas globales')
     }
   }
@@ -114,8 +112,8 @@ export class DashboardView {
 
         ${totalMazos === 0 ? `
           <div class="card text-center py-12">
-            <div class="w-16 h-16 bg-neutral-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span class="text-2xl">📚</span>
+            <div class="w-16 h-16 bg-neutral-100 rounded-md mx-auto mb-4 flex items-center justify-center">
+              <span class="text-2xl font-light text-neutral-400">[ ]</span>
             </div>
             <p class="text-neutral-600 mb-4">Aún no tienes mazos. Crea el primero para comenzar.</p>
             <button id="btn-ir-mazos-global" class="btn-accent">Ir a Mis Mazos</button>

@@ -28,9 +28,8 @@ export class TarjetaListView {
     try {
       this.tarjetas = await tarjetaApi.obtenerPorMazo(this.mazo.id)
       this.renderizar()
-    } catch (error) {
+    } catch {
       this.mostrarError('Error al cargar tarjetas')
-      console.error(error)
     }
   }
 
@@ -62,8 +61,8 @@ export class TarjetaListView {
   private renderizarVacio(): string {
     return `
       <div class="text-center py-16">
-        <div class="w-16 h-16 bg-neutral-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-          <span class="text-2xl text-neutral-400">🃏</span>
+        <div class="w-16 h-16 bg-neutral-200 rounded-md mx-auto mb-4 flex items-center justify-center">
+          <span class="text-2xl font-light text-neutral-400">[ ]</span>
         </div>
         <p class="text-neutral-700 text-lg mb-2">Sin tarjetas todavía</p>
         <p class="text-neutral-500 mb-6">
@@ -85,8 +84,8 @@ export class TarjetaListView {
 
   private renderizarTarjeta(tarjeta: Tarjeta): string {
     const tipoBadge = tarjeta.tipo === 'CODIGO'
-      ? '<span class="text-xs font-medium px-2 py-0.5 rounded bg-accent-100 text-accent-700">{ } Código</span>'
-      : '<span class="text-xs font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-600">📝 Texto</span>'
+      ? '<span class="text-xs font-medium px-2 py-0.5 rounded bg-accent-100 text-accent-700">Código</span>'
+      : '<span class="text-xs font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-600">Texto</span>'
 
     return `
       <div class="card" data-tarjeta-id="${tarjeta.id}">
@@ -326,7 +325,7 @@ export class TarjetaListView {
       await mazoController.agregarTarjeta(this.mazo.id, datos)
       this.eliminarModal()
       await this.cargarTarjetas()
-    } catch (_error) {
+    } catch {
       const errorEl = document.getElementById('modal-tarjeta-error')
       if (errorEl) { errorEl.textContent = 'Error al crear la tarjeta. Inténtalo de nuevo.'; errorEl.classList.remove('hidden') }
       if (btn) { btn.disabled = false; btn.textContent = 'Crear Tarjeta' }
@@ -344,7 +343,7 @@ export class TarjetaListView {
       await mazoController.editarTarjeta(tarjetaId, datos)
       this.eliminarModal()
       await this.cargarTarjetas()
-    } catch (_error) {
+    } catch {
       const errorEl = document.getElementById('modal-tarjeta-error')
       if (errorEl) { errorEl.textContent = 'Error al guardar los cambios. Inténtalo de nuevo.'; errorEl.classList.remove('hidden') }
       if (btn) { btn.disabled = false; btn.textContent = 'Guardar Cambios' }
@@ -355,7 +354,7 @@ export class TarjetaListView {
     try {
       await mazoController.eliminarTarjeta(tarjetaId)
       await this.cargarTarjetas()
-    } catch (_error) {
+    } catch {
       alert('Error al eliminar la tarjeta. Inténtalo de nuevo.')
     }
   }

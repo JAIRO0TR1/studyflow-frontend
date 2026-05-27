@@ -4,82 +4,45 @@ import type { AnalisiaGeminiResponse, TarjetaSugerida } from '@/models/Gemini'
 import type { Tarjeta } from '@/models/Tarjeta'
 
 /**
- * Controlador para integración con IA de Gemini
- * Orquesta el análisis de mazos y generación de tarjetas sugeridas
+ * Controlador de integración con Gemini.
+ * Implementa el patrón Facade del backend desde el cliente: una llamada
+ * al endpoint /analizar oculta toda la complejidad de IA (Capa Controlador — MVC).
  */
-
 export class GeminiController {
-  /**
-   * Solicitar análisis del mazo a Gemini
-   */
+
   async analizarMazo(
     mazoId: string,
     numeroTarjetas: number = 5
   ): Promise<AnalisiaGeminiResponse> {
-    try {
-      console.log(
-        `[GeminiController] Analizando mazo ${mazoId} para generar ${numeroTarjetas} tarjetas`
-      )
-      const analisis = await geminiApi.analizarMazo({
-        mazoId,
-        numeroTarjetas,
-      })
-      console.log(
-        `[GeminiController] Análisis completado. ${analisis.tarjetasSugeridas.length} tarjetas sugeridas`
-      )
-      return analisis
-    } catch (error) {
-      console.error('[GeminiController] Error al analizar mazo:', error)
-      throw error
-    }
+    return geminiApi.analizarMazo({ mazoId, numeroTarjetas })
   }
 
   /**
-   * Aceptar y agregar las tarjetas sugeridas por Gemini al mazo
+   * Acepta tarjetas sugeridas y las agrega al mazo una por una.
+   * Cada creación invoca un CrearTarjetaCommand en el backend (patrón Command).
    */
   async aceptarTarjetasSugeridas(
     mazoId: string,
     tarjetasSugeridas: TarjetaSugerida[]
   ): Promise<Tarjeta[]> {
-    try {
-      console.log(
-        `[GeminiController] Agregando ${tarjetasSugeridas.length} tarjetas sugeridas al mazo ${mazoId}`
-      )
-      // Crear tarjetas una por una usando el endpoint individual (más compatible)
-      const tarjetasCreadas: Tarjeta[] = []
-      for (const t of tarjetasSugeridas) {
-        const tarjeta = await mazoController.agregarTarjeta(mazoId, {
-          frente: t.frente,
-          reverso: t.reverso,
-          tipo: 'TEXTO',
-          etiquetas: [],
-          conPista: false,
-        })
-        tarjetasCreadas.push(tarjeta)
-      }
-      console.log(
-        `[GeminiController] ${tarjetasCreadas.length} tarjetas agregadas correctamente`
-      )
-      return tarjetasCreadas
-    } catch (error) {
-      console.error(
-        '[GeminiController] Error al agregar tarjetas sugeridas:',
-        error
-      )
-      throw error
+    const tarjetasCreadas: Tarjeta[] = []
+    for (const t of tarjetasSugeridas) {
+      const tarjeta = await mazoController.agregarTarjeta(mazoId, {
+        frente:   t.frente,
+        reverso:  t.reverso,
+        tipo:     'TEXTO',
+        etiquetas: [],
+        conPista:  false,
+      })
+      tarjetasCreadas.push(tarjeta)
     }
+    return tarjetasCreadas
   }
 
-  /**
-   * Rechazar las tarjetas sugeridas (no hacer nada)
-   */
   rechazarTarjetasSugeridas(): void {
-    console.log('[GeminiController] Tarjetas sugeridas rechazadas por el usuario')
+    // Sin efecto local; el backend no persiste sugerencias rechazadas
   }
 
-  /**
-   * Editar una tarjeta sugerida antes de aceptarla
-   */
   editarTarjetaSugerida(
     tarjeta: TarjetaSugerida,
     nuevoFrente?: string,
@@ -87,14 +50,11 @@ export class GeminiController {
   ): TarjetaSugerida {
     return {
       ...tarjeta,
-      frente: nuevoFrente || tarjeta.frente,
+      frente:  nuevoFrente  || tarjeta.frente,
       reverso: nuevoReverso || tarjeta.reverso,
     }
   }
 
-  /**
-   * Validar tarjeta antes de aceptarla
-   */
   validarTarjetaSugerida(tarjeta: TarjetaSugerida): boolean {
     return tarjeta.frente.trim().length > 0 && tarjeta.reverso.trim().length > 0
   }

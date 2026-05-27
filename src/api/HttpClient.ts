@@ -41,7 +41,6 @@ export class HttpClient {
 
       // Sesión expirada o no autorizado → limpiar y redirigir al login
       if (response.status === 401 && !endpoint.includes('/auth/')) {
-        console.warn('[HttpClient] Token expirado o inválido — cerrando sesión')
         localStorage.removeItem('authToken')
         localStorage.removeItem('authUsuario')
         sessionStorage.clear()
@@ -58,7 +57,6 @@ export class HttpClient {
         } catch {
           if (errorText) errorMessage = errorText.substring(0, 300)
         }
-        console.error(`[HttpClient] Backend error ${response.status} en ${endpoint}:`, errorMessage)
         throw new Error(errorMessage)
       }
 
@@ -68,7 +66,6 @@ export class HttpClient {
 
       return await response.json()
     } catch (error) {
-      console.error(`[HttpClient] Error en ${endpoint}:`, error)
       throw error
     }
   }

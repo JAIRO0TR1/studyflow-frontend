@@ -25,7 +25,6 @@ class App {
   private usuarioActual: UsuarioSesion | null = null
 
   async inicializar(): Promise<void> {
-    console.log('[App] Inicializando StudyFlow...')
     this.appContainer = document.getElementById('app')
     if (!this.appContainer) return
 
@@ -42,7 +41,6 @@ class App {
       this.mostrarLogin('login')
     }
 
-    console.log('[App] StudyFlow listo')
   }
 
   // ─── AUTH ────────────────────────────────────────────────────────────────────
@@ -110,12 +108,12 @@ class App {
         </header>
 
         <!-- Contenido principal -->
-        <main class="main-container py-8">
+        <main class="main-container py-8 flex-1">
           <div id="content"></div>
         </main>
 
         <!-- Footer institucional -->
-        <footer class="border-t border-neutral-200 bg-white mt-16">
+        <footer class="border-t border-neutral-200 bg-white">
           <div class="main-container py-4 flex justify-between items-center text-xs text-neutral-400">
             <span>StudyFlow &mdash; Patrones de Software 2026</span>
             <span>SM-2 &bull; Gemini AI &bull; Spring Boot</span>

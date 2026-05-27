@@ -5,11 +5,11 @@ const TOKEN_KEY   = 'authToken'
 const USUARIO_KEY = 'authUsuario'
 
 /**
- * Controlador de autenticación — gestiona sesión local y llamadas al backend
+ * Controlador de autenticación.
+ * Gestiona el ciclo de vida de la sesión del usuario (Capa Controlador — MVC).
  */
 export class AuthController {
 
-  /** Inicia sesión y guarda token + datos de usuario */
   async login(datos: LoginRequest): Promise<UsuarioSesion> {
     const resp = await authApi.login(datos)
     this.guardarSesion(resp.token, {
@@ -20,7 +20,6 @@ export class AuthController {
     return this.obtenerUsuario()!
   }
 
-  /** Registra usuario nuevo e inicia sesión automáticamente */
   async registro(datos: RegistroRequest): Promise<UsuarioSesion> {
     const resp = await authApi.registro(datos)
     this.guardarSesion(resp.token, {
@@ -31,19 +30,16 @@ export class AuthController {
     return this.obtenerUsuario()!
   }
 
-  /** Cierra sesión y limpia almacenamiento local */
   cerrarSesion(): void {
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(USUARIO_KEY)
     sessionStorage.clear()
   }
 
-  /** Verifica si hay sesión activa */
   estaAutenticado(): boolean {
     return !!localStorage.getItem(TOKEN_KEY)
   }
 
-  /** Obtiene datos del usuario desde localStorage */
   obtenerUsuario(): UsuarioSesion | null {
     try {
       const raw = localStorage.getItem(USUARIO_KEY)
@@ -53,7 +49,6 @@ export class AuthController {
     }
   }
 
-  /** Obtiene el token JWT */
   obtenerToken(): string | null {
     return localStorage.getItem(TOKEN_KEY)
   }

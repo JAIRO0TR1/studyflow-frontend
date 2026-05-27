@@ -76,21 +76,17 @@ export class SesionView {
 
         <!-- Botones de calificación -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button id="btn-no-supe" class="btn-danger flex-col gap-1 py-3">
-            <span class="text-lg">✗</span>
-            <span class="text-xs">No la supe</span>
+          <button id="btn-no-supe" class="btn-danger py-3 font-semibold">
+            No la supe
           </button>
-          <button id="btn-dificil" class="btn-warning flex-col gap-1 py-3">
-            <span class="text-lg">~</span>
-            <span class="text-xs">Difícil</span>
+          <button id="btn-dificil" class="btn-warning py-3 font-semibold">
+            Difícil
           </button>
-          <button id="btn-bien" class="btn-accent flex-col gap-1 py-3">
-            <span class="text-lg">✓</span>
-            <span class="text-xs">Bien</span>
+          <button id="btn-bien" class="btn-accent py-3 font-semibold">
+            Bien
           </button>
-          <button id="btn-facil" class="btn-success flex-col gap-1 py-3">
-            <span class="text-lg">✓✓</span>
-            <span class="text-xs">Fácil</span>
+          <button id="btn-facil" class="btn-success py-3 font-semibold">
+            Fácil
           </button>
         </div>
       </div>
@@ -156,7 +152,7 @@ export class SesionView {
     this.container.innerHTML = `
       <div class="max-w-md mx-auto text-center py-8 animate-fade-in">
         <div class="w-20 h-20 bg-success-100 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-success-300">
-          <span class="text-3xl text-success-600">✓</span>
+          <span class="text-xl font-bold text-success-600">OK</span>
         </div>
         <h2 class="text-2xl font-bold text-neutral-900 mb-2">Sesión completada</h2>
         <p class="text-neutral-500 mb-8">Excelente trabajo. Tu progreso ha sido guardado.</p>

@@ -1,5 +1,5 @@
 import { geminiApi } from '@/api/geminiApi'
-import { tarjetaApi } from '@/api/tarjetaApi'
+import { mazoController } from '@/controllers/MazoController'
 import type { AnalisiaGeminiResponse, TarjetaSugerida } from '@/models/Gemini'
 import type { Tarjeta } from '@/models/Tarjeta'
 
@@ -45,14 +45,16 @@ export class GeminiController {
       console.log(
         `[GeminiController] Agregando ${tarjetasSugeridas.length} tarjetas sugeridas al mazo ${mazoId}`
       )
-      const tarjetasCreadas = await tarjetaApi.crearMultiples(
-        mazoId,
-        tarjetasSugeridas.map(t => ({
+      // Crear tarjetas una por una usando el endpoint individual (más compatible)
+      const tarjetasCreadas: Tarjeta[] = []
+      for (const t of tarjetasSugeridas) {
+        const tarjeta = await mazoController.agregarTarjeta(mazoId, {
           frente: t.frente,
           reverso: t.reverso,
           tipo: 'TEXTO',
-        }))
-      )
+        })
+        tarjetasCreadas.push(tarjeta)
+      }
       console.log(
         `[GeminiController] ${tarjetasCreadas.length} tarjetas agregadas correctamente`
       )

@@ -7,155 +7,363 @@
   html { scroll-behavior: smooth; }
 
   body {
-    @apply bg-neutral-100 text-neutral-900 font-sans;
+    @apply bg-neutral-50 text-neutral-900 font-sans antialiased;
     font-feature-settings: "kern" 1, "liga" 1;
   }
 
   h1, h2, h3, h4, h5, h6 { @apply text-neutral-900 font-semibold; }
+
+  * { -webkit-tap-highlight-color: transparent; }
 }
 
 /* ─── COMPONENTES ────────────────────────────────────────────────────────────── */
 @layer components {
 
-  /* ── Botones ── */
+  /* ══ BOTONES ══════════════════════════════════════════════════════════════════ */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded font-medium text-sm
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm
            transition-all duration-150 cursor-pointer border border-transparent
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500
+           focus:outline-none focus:ring-2 focus:ring-offset-2
            disabled:opacity-50 disabled:cursor-not-allowed select-none;
   }
 
-  .btn-primary   { @apply btn bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700; }
-  .btn-accent    { @apply btn bg-accent-500  text-white hover:bg-accent-600  active:bg-accent-700; }
-  .btn-success   { @apply btn bg-success-500 text-white hover:bg-success-600 active:bg-success-700; }
-  .btn-warning   { @apply btn bg-warning-500 text-white hover:bg-warning-600 active:bg-warning-700; }
-  .btn-danger    { @apply btn bg-danger-500  text-white hover:bg-danger-600  active:bg-danger-700; }
+  /* Indigo — principal */
+  .btn-primary {
+    @apply btn bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800
+           focus:ring-indigo-500 shadow-sm hover:shadow-colored-indigo;
+  }
 
+  /* Teal — acciones CTA */
+  .btn-accent {
+    @apply btn bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800
+           focus:ring-teal-500 shadow-sm hover:shadow-colored-teal;
+  }
+
+  /* Violet — IA / especial */
+  .btn-violet {
+    @apply btn text-white focus:ring-violet-500 shadow-sm hover:shadow-colored-violet;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  }
+  .btn-violet:hover { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+
+  /* Emerald — éxito */
+  .btn-success {
+    @apply btn bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800
+           focus:ring-emerald-500 shadow-sm;
+  }
+
+  /* Amber — advertencia */
+  .btn-warning {
+    @apply btn bg-amber-500 text-white hover:bg-amber-600 active:bg-amber-700
+           focus:ring-amber-400 shadow-sm;
+  }
+
+  /* Rose — peligro */
+  .btn-danger {
+    @apply btn bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800
+           focus:ring-rose-500 shadow-sm;
+  }
+
+  /* Secundario neutro */
   .btn-secondary {
     @apply btn bg-white text-neutral-700 border border-neutral-300
-           hover:bg-neutral-50 hover:border-neutral-400 active:bg-neutral-100;
+           hover:bg-neutral-50 hover:border-neutral-400 active:bg-neutral-100
+           focus:ring-neutral-300 shadow-sm;
   }
 
+  /* Outline */
   .btn-outline {
-    @apply btn bg-transparent text-accent-600 border border-accent-400
-           hover:bg-accent-50 active:bg-accent-100;
+    @apply btn bg-transparent text-indigo-600 border border-indigo-300
+           hover:bg-indigo-50 active:bg-indigo-100 focus:ring-indigo-300;
   }
 
-  /* ── Navegación del header ── */
+  /* Botones de calificación */
+  .btn-rate {
+    @apply btn py-4 text-sm font-bold tracking-wide rounded-xl
+           transition-all duration-150 active:scale-95;
+  }
+  .btn-rate-no    { @apply btn-rate bg-rose-100 text-rose-700 border-2 border-rose-200 hover:bg-rose-600 hover:text-white hover:border-rose-600; }
+  .btn-rate-dif   { @apply btn-rate bg-amber-100 text-amber-700 border-2 border-amber-200 hover:bg-amber-500 hover:text-white hover:border-amber-500; }
+  .btn-rate-bien  { @apply btn-rate bg-sky-100 text-sky-700 border-2 border-sky-200 hover:bg-sky-500 hover:text-white hover:border-sky-500; }
+  .btn-rate-facil { @apply btn-rate bg-emerald-100 text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-500 hover:text-white hover:border-emerald-500; }
+
+  /* ══ NAVEGACIÓN ═══════════════════════════════════════════════════════════════ */
   .nav-btn {
-    @apply px-4 py-2 text-sm font-medium rounded transition-colors duration-150
-           text-white/75 hover:text-white hover:bg-white/10 active:bg-white/20;
+    @apply px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150
+           text-white/70 hover:text-white active:bg-white/20;
+    background-color: transparent;
+  }
+  .nav-btn:hover { background-color: rgba(255,255,255,0.12);
+  }
+  .nav-btn-active {
+    @apply px-3 py-2 text-sm font-medium rounded-lg
+           text-white bg-white/20 border border-white/25;
   }
 
-  /* ── Cards ── */
+  /* ══ CARDS ════════════════════════════════════════════════════════════════════ */
   .card {
-    @apply bg-white rounded-md shadow-sm border border-neutral-200 p-6
+    @apply bg-white rounded-xl shadow-card border border-neutral-200 p-6
            transition-shadow duration-200;
   }
+  .card:hover { @apply shadow-card-hover; }
 
-  .card:hover { @apply shadow-md; }
-
-  /* Card con borde de acento superior (stats, paneles de datos) */
+  /* Card con borde superior de acento */
   .card-featured {
     @apply card;
-    border-top: 3px solid theme('colors.accent.500');
+    border-top: 3px solid #6366f1;
   }
 
-  /* Card de mazo */
+  /* Card de mazo — el header de gradiente va inline */
   .card-mazo {
-    @apply bg-white rounded-md shadow-sm border border-neutral-200 p-5
-           hover:shadow-md hover:border-accent-300 transition-all duration-200 cursor-pointer;
+    @apply bg-white rounded-xl shadow-card border border-neutral-200
+           hover:shadow-card-hover hover:border-neutral-300 transition-all duration-200
+           cursor-pointer overflow-hidden;
+  }
+
+  /* Header de mazo con gradiente */
+  .card-mazo-header {
+    @apply h-2;
   }
 
   .card-header {
     @apply border-b border-neutral-200 pb-4 mb-4 px-6 pt-5;
   }
 
-  /* ── Inputs ── */
+  /* ══ INPUTS ══════════════════════════════════════════════════════════════════ */
   .input {
-    @apply w-full px-3 py-2.5 border border-neutral-300 rounded text-sm
-           focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-accent-400
+    @apply w-full px-3.5 py-2.5 border border-neutral-300 rounded-lg text-sm
+           focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
            bg-white text-neutral-900 placeholder-neutral-400
-           transition-shadow duration-150;
+           transition-all duration-150;
   }
+  .input:disabled { @apply bg-neutral-100 cursor-not-allowed text-neutral-500; }
 
-  .input:disabled { @apply bg-neutral-100 cursor-not-allowed; }
-
-  /* ── Badges ── */
+  /* ══ BADGES ══════════════════════════════════════════════════════════════════ */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
   }
+  .badge-indigo  { @apply bg-indigo-100  text-indigo-700; }
+  .badge-teal    { @apply bg-teal-100    text-teal-700; }
+  .badge-violet  { @apply bg-violet-100  text-violet-700; }
+  .badge-emerald { @apply bg-emerald-100 text-emerald-700; }
+  .badge-amber   { @apply bg-amber-100   text-amber-700; }
+  .badge-rose    { @apply bg-rose-100    text-rose-700; }
+  .badge-sky     { @apply bg-sky-100     text-sky-700; }
+  .badge-primary { @apply bg-indigo-100  text-indigo-700; }
+  .badge-accent  { @apply bg-teal-100    text-teal-700; }
+  .badge-success { @apply bg-emerald-100 text-emerald-700; }
+  .badge-warning { @apply bg-amber-100   text-amber-700; }
+  .badge-danger  { @apply bg-rose-100    text-rose-700; }
+  .badge-neutral { @apply bg-neutral-100 text-neutral-700; }
 
-  .badge-primary   { @apply bg-primary-100 text-primary-700; }
-  .badge-accent    { @apply bg-accent-100  text-accent-700; }
-  .badge-success   { @apply bg-success-100 text-success-700; }
-  .badge-warning   { @apply bg-warning-100 text-warning-700; }
-  .badge-danger    { @apply bg-danger-100  text-danger-700; }
-  .badge-neutral   { @apply bg-neutral-100 text-neutral-700; }
-
-  /* ── Barra de progreso ── */
+  /* ══ BARRA DE PROGRESO ═══════════════════════════════════════════════════════ */
   .progress     { @apply w-full h-2 bg-neutral-200 rounded-full overflow-hidden; }
-  .progress-bar { @apply h-full bg-accent-500 rounded-full transition-all duration-500; }
+  .progress-bar { @apply h-full bg-gradient-to-r from-teal-500 to-indigo-500 rounded-full transition-all duration-500; }
 
-  /* ── Alertas ── */
-  .alert         { @apply px-4 py-3 rounded border text-sm; }
-  .alert-success { @apply bg-success-50 border-success-300 text-success-700; }
-  .alert-warning { @apply bg-warning-50 border-warning-300 text-warning-700; }
-  .alert-danger  { @apply bg-danger-50  border-danger-300  text-danger-700; }
-  .alert-info    { @apply bg-accent-50  border-accent-300  text-accent-700; }
+  /* ══ ALERTAS ═════════════════════════════════════════════════════════════════ */
+  .alert         { @apply px-4 py-3 rounded-lg border text-sm; }
+  .alert-success { @apply bg-emerald-50 border-emerald-300 text-emerald-700; }
+  .alert-warning { @apply bg-amber-50   border-amber-300   text-amber-700; }
+  .alert-danger  { @apply bg-rose-50    border-rose-300    text-rose-700; }
+  .alert-info    { @apply bg-indigo-50  border-indigo-300  text-indigo-700; }
 
-  /* ── Layout ── */
-  .grid-responsive { @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4; }
+  /* ══ LAYOUT ══════════════════════════════════════════════════════════════════ */
+  .grid-responsive { @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5; }
 
   .header {
-    @apply bg-primary-500 shadow-md border-b border-primary-600;
+    background: linear-gradient(135deg, #3730a3, #4f46e5 50%, #6d28d9);
+    @apply shadow-lg;
   }
 
   .main-container { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8; }
 
-  /* ── Sección de página ── */
-  .page-header {
-    @apply mb-8 pb-6 border-b border-neutral-200;
-  }
-
+  /* ══ SECCIÓN DE PÁGINA ═══════════════════════════════════════════════════════ */
+  .page-header   { @apply mb-8 pb-6 border-b border-neutral-200; }
   .page-title    { @apply text-2xl font-bold text-neutral-900; }
   .page-subtitle { @apply text-sm text-neutral-500 mt-1; }
 
-  /* ── Hover utils ── */
-  .hover-lift   { @apply hover:-translate-y-0.5 transition-transform duration-150; }
-  .hover-shadow { @apply hover:shadow-lg transition-shadow duration-200; }
-
-  /* ── Tarjeta de estudio ── */
-  .study-card-container {
-    @apply bg-gradient-to-br from-accent-500 to-primary-600 rounded-lg p-1 shadow-lg;
+  /* ══ STAT CARDS ═══════════════════════════════════════════════════════════════ */
+  .stat-card {
+    @apply card text-center relative overflow-hidden;
   }
+  .stat-card::before {
+    content: '';
+    @apply absolute top-0 inset-x-0 h-1 rounded-t-xl;
+  }
+  .stat-card-indigo::before  { @apply bg-indigo-500; }
+  .stat-card-teal::before    { @apply bg-teal-500; }
+  .stat-card-violet::before  { @apply bg-violet-500; }
+  .stat-card-emerald::before { @apply bg-emerald-500; }
+  .stat-card-amber::before   { @apply bg-amber-500; }
+  .stat-card-rose::before    { @apply bg-rose-500; }
+
+  /* ══ QUIZ / DESAFÍO ══════════════════════════════════════════════════════════ */
+  .quiz-option {
+    @apply flex items-center gap-3 w-full px-4 py-3.5 rounded-xl border-2 border-neutral-200
+           bg-white text-left font-medium text-sm text-neutral-700
+           hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-700
+           transition-all duration-150 cursor-pointer;
+  }
+  .quiz-option:disabled { @apply cursor-default; }
+
+  .quiz-option-letra {
+    @apply w-8 h-8 rounded-lg bg-neutral-100 text-neutral-600 font-bold text-sm
+           flex items-center justify-center shrink-0 transition-colors duration-150;
+  }
+
+  /* Estado correcto */
+  .quiz-option-correct {
+    @apply border-emerald-500 bg-emerald-50 text-emerald-800;
+  }
+  .quiz-option-correct .quiz-option-letra {
+    @apply bg-emerald-500 text-white;
+  }
+
+  /* Estado incorrecto */
+  .quiz-option-wrong {
+    @apply border-rose-400 bg-rose-50 text-rose-800;
+    animation: shake 0.4s ease-out;
+  }
+  .quiz-option-wrong .quiz-option-letra {
+    @apply bg-rose-500 text-white;
+  }
+
+  /* ══ COMBO BADGE ══════════════════════════════════════════════════════════════ */
+  .combo-badge {
+    @apply px-3 py-1 rounded-full text-xs font-black tracking-wider text-white;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    animation: pulseOnce 0.35s ease-out;
+  }
+
+  /* ══ LOGROS ══════════════════════════════════════════════════════════════════ */
+  .achievement-card {
+    @apply flex items-start gap-3 p-4 rounded-xl border-2 border-transparent
+           bg-gradient-to-br from-neutral-50 to-neutral-100;
+  }
+  .achievement-card-earned {
+    @apply border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50;
+  }
+  .achievement-icon {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0;
+  }
+
+  /* ══ TIMER BAR ═══════════════════════════════════════════════════════════════ */
+  .timer-bar-track {
+    @apply w-full h-2.5 bg-neutral-100 rounded-full overflow-hidden;
+  }
+  .timer-bar-fill {
+    @apply h-full rounded-full;
+    background: linear-gradient(90deg, #10b981, #6366f1);
+    transition: width 1s linear, background 2s ease;
+  }
+  .timer-bar-danger {
+    background: linear-gradient(90deg, #f43f5e, #e11d48) !important;
+  }
+
+  /* ══ TARJETA DE ESTUDIO ══════════════════════════════════════════════════════ */
+  .study-card-container {
+    @apply rounded-2xl p-1 shadow-xl;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  }
+
+  /* ══ KEYBOARD HINT ═══════════════════════════════════════════════════════════ */
+  .kbd {
+    @apply inline-flex items-center justify-center px-1.5 py-0.5
+           text-xs font-mono font-semibold text-neutral-500
+           bg-neutral-100 border border-neutral-300 rounded
+           min-w-[1.5rem];
+  }
+
+  /* ══ PROGRESS RING (SVG) ════════════════════════════════════════════════════ */
+  .progress-ring-track { fill: none; stroke: #e5e7eb; }
+  .progress-ring-fill  {
+    fill: none;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    stroke-dasharray: 283;
+    animation: ringDraw 1.2s ease-out forwards;
+  }
+
+  /* ══ TOAST ═══════════════════════════════════════════════════════════════════ */
+  .toast {
+    @apply fixed bottom-6 right-6 z-50 flex items-center gap-3
+           bg-neutral-900 text-white text-sm font-medium
+           px-4 py-3 rounded-xl shadow-2xl max-w-xs;
+    animation: slideUp 0.35s ease-out;
+  }
+  .toast-success { @apply bg-emerald-700; }
+  .toast-warning { @apply bg-amber-600; }
+  .toast-violet  { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
 }
 
-/* ─── ANIMACIONES ────────────────────────────────────────────────────────────── */
+/* ─── ANIMACIONES GLOBALES ───────────────────────────────────────────────────── */
 @layer utilities {
   .animate-slide-up  { animation: slideUp 0.35s ease-out; }
   .animate-fade-in   { animation: fadeIn 0.25s ease-in; }
+  .animate-bounce-in { animation: bounceIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .animate-shake     { animation: shake 0.4s ease-out; }
+  .animate-pulse-once { animation: pulseOnce 0.35s ease-out; }
 }
 
-@keyframes slideUp  { 0% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-@keyframes fadeIn   { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes slideUp    { 0% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn     { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes bounceIn   { 0% { transform: scale(0.75); opacity: 0; } 70% { transform: scale(1.04); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes shake      { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+@keyframes pulseOnce  { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes floatUp    { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(0.7); opacity: 0; } }
+@keyframes confettiFall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+@keyframes ringDraw   { 0% { stroke-dashoffset: 283; } 100% { stroke-dashoffset: var(--ring-offset, 0); } }
+@keyframes timerDrain { 0% { width: 100%; } 100% { width: 0%; } }
+@keyframes countUp    { 0% { transform: translateY(6px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
 
 /* ─── MODALES ────────────────────────────────────────────────────────────────── */
 .modal-backdrop {
-  @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center z-50 p-4;
   animation: fadeIn 0.15s ease-in;
 }
 
 .modal-content {
-  @apply bg-white rounded-lg shadow-2xl w-full mx-4 overflow-hidden;
+  @apply bg-white rounded-2xl shadow-2xl w-full mx-auto overflow-hidden;
   max-width: 30rem;
   animation: slideUp 0.2s ease-out;
 }
 
-/* ─── TARJETA CON VOLTEO ─────────────────────────────────────────────────────── */
+/* ─── TARJETA CON VOLTEO 3D ──────────────────────────────────────────────────── */
+.flip-perspective { perspective: 1200px; }
+
+.flip-card-inner {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  position: relative;
+}
+.flip-card-inner.flipped { transform: rotateY(180deg); }
+
 .flip-card-front,
 .flip-card-back {
-  transition: transform 0.45s ease;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  position: absolute;
+  inset: 0;
+}
+.flip-card-back { transform: rotateY(180deg); }
+
+/* ─── SCROLLBAR CUSTOM ───────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-neutral-100; }
+::-webkit-scrollbar-thumb { @apply bg-neutral-300 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-neutral-400; }
+
+/* ─── UTILIDADES EXTRA ───────────────────────────────────────────────────────── */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

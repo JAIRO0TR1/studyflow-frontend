@@ -1,92 +1,125 @@
 /**
- * Componente para la sesión de estudio
+ * Sesión de estudio — con timer, atajos de teclado y confetti al completar
  */
 
 import type { SesionActiva, RespuestaRegistro } from '@/models/Sesion'
 import { TarjetaView } from './TarjetaView'
 import { sesionController } from '@/controllers/SesionController'
 
+type Calificacion = 'FACIL' | 'BIEN' | 'DIFICIL' | 'NO_LA_SUPE'
+
 export class SesionView {
   private container: HTMLElement
   private sesion: SesionActiva | null = null
   private tarjetaView: TarjetaView | null = null
+
+  // Timer de sesión (tiempo total transcurrido)
+  private timerSesion: ReturnType<typeof setInterval> | null = null
+  private segundosTranscurridos = 0
+
+  // Handlers de teclado
+  private keyHandler: ((e: KeyboardEvent) => void) | null = null
+
   private onSesionFinalizada?: (resultado: RespuestaRegistro) => void
   private onSesionCancelada?: () => void
 
   constructor(containerId: string) {
-    const element = document.getElementById(containerId)
-    if (!element) {
-      throw new Error(`Container with id ${containerId} not found`)
-    }
-    this.container = element
+    const el = document.getElementById(containerId)
+    if (!el) throw new Error(`Container #${containerId} not found`)
+    this.container = el
   }
 
-  setEventHandlers(handlers: {
+  setEventHandlers(h: {
     onSesionFinalizada?: (resultado: RespuestaRegistro) => void
     onSesionCancelada?: () => void
-  }) {
-    this.onSesionFinalizada = handlers.onSesionFinalizada
-    this.onSesionCancelada = handlers.onSesionCancelada
+  }): void {
+    this.onSesionFinalizada = h.onSesionFinalizada
+    this.onSesionCancelada  = h.onSesionCancelada
   }
 
   mostrarSesion(sesion: SesionActiva): void {
     this.sesion = sesion
     this.renderizar()
+    this.iniciarTimer()
+    this.registrarTeclado()
   }
+
+  // ─── RENDER ──────────────────────────────────────────────────────────────────
 
   private renderizar(): void {
     if (!this.sesion) return
 
     const progreso = sesionController.obtenerProgresoSesion()
-    const pct = progreso?.porcentaje || 0
-    const actual = progreso?.actual || 0
-    const total = progreso?.total || 0
+    const pct      = progreso?.porcentaje ?? 0
+    const actual   = progreso?.actual   ?? 0
+    const total    = progreso?.total    ?? 0
 
     this.container.innerHTML = `
       <div class="max-w-2xl mx-auto animate-fade-in">
-        <!-- Cabecera de sesión -->
-        <div class="flex justify-between items-start mb-6">
+
+        <!-- Cabecera -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h2 class="text-xl font-bold text-neutral-900">Sesión de Estudio</h2>
-            <p class="text-sm text-neutral-500 mt-0.5">Tarjeta ${actual} de ${total}</p>
+            <div class="flex items-center gap-3 mt-1">
+              <p class="text-sm text-neutral-500">Tarjeta ${actual} de ${total}</p>
+              <span class="text-neutral-300">&bull;</span>
+              <p id="session-timer" class="text-sm font-mono font-semibold text-indigo-600 tabular-nums">
+                0:00
+              </p>
+            </div>
           </div>
-          <button id="btn-cancelar" class="btn-secondary text-sm">
+          <button id="btn-cancelar" class="btn-secondary text-sm gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+            </svg>
             Salir
           </button>
         </div>
 
         <!-- Barra de progreso -->
         <div class="mb-8">
-          <div class="progress mb-1.5">
-            <div class="progress-bar" style="width: ${pct}%"></div>
-          </div>
-          <div class="flex justify-between text-xs text-neutral-400">
+          <div class="flex justify-between text-xs text-neutral-400 mb-1.5">
             <span>${actual > 0 ? actual - 1 : 0} completadas</span>
+            <span class="font-semibold text-indigo-600">${pct}%</span>
             <span>${total - actual} restantes</span>
+          </div>
+          <div class="progress h-3">
+            <div class="progress-bar h-full" style="width:${pct}%"></div>
           </div>
         </div>
 
-        <!-- Tarjeta -->
-        <div id="tarjeta-container" class="mb-8"></div>
+        <!-- Contenedor de tarjeta -->
+        <div id="tarjeta-container" class="mb-6"></div>
 
-        <!-- Instrucción -->
-        <p class="text-center text-xs text-neutral-400 mb-6">
-          Haz clic en la tarjeta para ver la respuesta, luego califica tu desempeño
+        <!-- Hint teclado -->
+        <p class="text-center text-xs text-neutral-400 mb-5" id="hint-texto">
+          <span class="kbd">Espacio</span> para voltear &nbsp;&bull;&nbsp;
+          <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span>
+          para calificar
         </p>
 
         <!-- Botones de calificación -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button id="btn-no-supe" class="btn-danger py-3 font-semibold">
-            No la supe
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="botones-calificacion">
+          <button id="btn-no-supe" class="btn-rate btn-rate-no">
+            <span class="block text-lg mb-0.5">&#x2715;</span>
+            <span class="block text-xs font-normal opacity-80">No la supe</span>
+            <span class="kbd mt-1 opacity-60 text-xs">1</span>
           </button>
-          <button id="btn-dificil" class="btn-warning py-3 font-semibold">
-            Difícil
+          <button id="btn-dificil" class="btn-rate btn-rate-dif">
+            <span class="block text-lg mb-0.5">&#x223C;</span>
+            <span class="block text-xs font-normal opacity-80">Difícil</span>
+            <span class="kbd mt-1 opacity-60 text-xs">2</span>
           </button>
-          <button id="btn-bien" class="btn-accent py-3 font-semibold">
-            Bien
+          <button id="btn-bien" class="btn-rate btn-rate-bien">
+            <span class="block text-lg mb-0.5">&#x2713;</span>
+            <span class="block text-xs font-normal opacity-80">Bien</span>
+            <span class="kbd mt-1 opacity-60 text-xs">3</span>
           </button>
-          <button id="btn-facil" class="btn-success py-3 font-semibold">
-            Fácil
+          <button id="btn-facil" class="btn-rate btn-rate-facil">
+            <span class="block text-lg mb-0.5">&#x2713;&#x2713;</span>
+            <span class="block text-xs font-normal opacity-80">Fácil</span>
+            <span class="kbd mt-1 opacity-60 text-xs">4</span>
           </button>
         </div>
       </div>
@@ -94,116 +127,208 @@ export class SesionView {
 
     this.tarjetaView = new TarjetaView('tarjeta-container')
     this.tarjetaView.mostrarTarjeta(this.sesion.tarjetaActual)
-    this.attachEventListeners()
+    this.bindEventos()
   }
 
-  private attachEventListeners(): void {
+  // ─── EVENTOS ─────────────────────────────────────────────────────────────────
+
+  private bindEventos(): void {
     document.getElementById('btn-cancelar')?.addEventListener('click', () => {
-      if (confirm('¿Salir de la sesión? El progreso actual no se guardará.')) {
+      if (confirm('¿Salir de la sesión? El progreso no se guardará.')) {
+        this.limpiarTimer()
+        this.limpiarTeclado()
         sesionController.cancelarSesion()
         this.onSesionCancelada?.()
       }
     })
 
-    document.getElementById('btn-no-supe')?.addEventListener('click', () =>
-      this.registrarRespuesta('NO_LA_SUPE')
-    )
-    document.getElementById('btn-dificil')?.addEventListener('click', () =>
-      this.registrarRespuesta('DIFICIL')
-    )
-    document.getElementById('btn-bien')?.addEventListener('click', () =>
-      this.registrarRespuesta('BIEN')
-    )
-    document.getElementById('btn-facil')?.addEventListener('click', () =>
-      this.registrarRespuesta('FACIL')
-    )
+    document.getElementById('btn-no-supe')?.addEventListener('click', () => this.calificar('NO_LA_SUPE'))
+    document.getElementById('btn-dificil')?.addEventListener('click', () => this.calificar('DIFICIL'))
+    document.getElementById('btn-bien')?.addEventListener('click',    () => this.calificar('BIEN'))
+    document.getElementById('btn-facil')?.addEventListener('click',   () => this.calificar('FACIL'))
   }
 
-  private async registrarRespuesta(
-    calificacion: 'FACIL' | 'BIEN' | 'DIFICIL' | 'NO_LA_SUPE'
-  ): Promise<void> {
+  // ─── TECLADO ─────────────────────────────────────────────────────────────────
+
+  private registrarTeclado(): void {
+    this.limpiarTeclado()
+    this.keyHandler = (e: KeyboardEvent) => {
+      // No activar si hay foco en input/textarea
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) return
+
+      switch (e.key) {
+        case ' ':
+        case 'Enter':
+          e.preventDefault()
+          this.tarjetaView?.voltearDesdeExterno()
+          break
+        case '1': this.calificar('NO_LA_SUPE'); break
+        case '2': this.calificar('DIFICIL');    break
+        case '3': this.calificar('BIEN');       break
+        case '4': this.calificar('FACIL');      break
+      }
+    }
+    document.addEventListener('keydown', this.keyHandler)
+  }
+
+  private limpiarTeclado(): void {
+    if (this.keyHandler) {
+      document.removeEventListener('keydown', this.keyHandler)
+      this.keyHandler = null
+    }
+  }
+
+  // ─── TIMER ───────────────────────────────────────────────────────────────────
+
+  private iniciarTimer(): void {
+    this.segundosTranscurridos = 0
+    this.timerSesion = setInterval(() => {
+      this.segundosTranscurridos++
+      const el = document.getElementById('session-timer')
+      if (el) el.textContent = this.formatearTiempo(this.segundosTranscurridos)
+    }, 1000)
+  }
+
+  private limpiarTimer(): void {
+    if (this.timerSesion) { clearInterval(this.timerSesion); this.timerSesion = null }
+  }
+
+  private formatearTiempo(seg: number): string {
+    const m = Math.floor(seg / 60)
+    const s = seg % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  // ─── CALIFICACIÓN ────────────────────────────────────────────────────────────
+
+  private async calificar(cal: Calificacion): Promise<void> {
     if (!this.sesion) return
+    this.deshabilitarBotones()
 
     try {
-      this.deshabilitarBotones()
       const resultado = await sesionController.registrarRespuesta(
-        this.sesion.tarjetaActual.id,
-        calificacion
+        this.sesion.tarjetaActual.id, cal
       )
 
       if (resultado.sesionCompletada) {
-        // Solo notificar y mostrar resultados cuando la sesión realmente termina
+        this.limpiarTimer()
+        this.limpiarTeclado()
         this.onSesionFinalizada?.(resultado)
-        this.mostrarFinalizado(resultado)
+        this.mostrarCompletado(resultado)
       } else {
-        // Continuar con la siguiente tarjeta sin salir
-        this.mostrarSesion(sesionController.obtenerSesionActiva()!)
+        this.sesion = sesionController.obtenerSesionActiva()!
+        this.renderizar()
+        this.registrarTeclado()
       }
-    } catch (error) {
-      console.error('Error al registrar respuesta:', error)
+    } catch {
       alert('Error al registrar respuesta. Intenta de nuevo.')
       this.habilitarBotones()
     }
   }
 
-  private mostrarFinalizado(resultado: RespuestaRegistro): void {
-    const stats = resultado.estadisticas
+  // ─── PANTALLA COMPLETADO ─────────────────────────────────────────────────────
+
+  private mostrarCompletado(resultado: RespuestaRegistro): void {
+    const stats  = resultado.estadisticas
+    const pct    = stats?.porcentaje ?? 0
+    const tiempo = this.formatearTiempo(this.segundosTranscurridos)
+
+    if (pct >= 60) this.confetti()
+
+    const gradoColor = pct >= 80 ? '#059669' : pct >= 60 ? '#0ea5e9' : '#f59e0b'
+    const grado      = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B' : pct >= 60 ? 'C' : 'D'
 
     this.container.innerHTML = `
-      <div class="max-w-md mx-auto text-center py-8 animate-fade-in">
-        <div class="w-20 h-20 bg-success-100 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-success-300">
-          <span class="text-xl font-bold text-success-600">OK</span>
+      <div class="max-w-md mx-auto text-center py-6 animate-bounce-in">
+
+        <!-- Icono y grado -->
+        <div class="mb-5">
+          <div class="w-20 h-20 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg"
+            style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #6ee7b7">
+            <svg class="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75
+                M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-neutral-900 mb-1">¡Sesión completada!</h2>
+          <p class="text-neutral-500 text-sm">Tiempo total: <strong>${tiempo}</strong></p>
         </div>
-        <h2 class="text-2xl font-bold text-neutral-900 mb-2">Sesión completada</h2>
-        <p class="text-neutral-500 mb-8">Excelente trabajo. Tu progreso ha sido guardado.</p>
 
         ${stats ? `
-          <div class="card-featured mb-8 text-left">
-            <h3 class="font-semibold text-neutral-700 mb-4 text-center text-sm uppercase tracking-wide">
-              Resultados de la sesión
-            </h3>
+          <!-- Grado + stats -->
+          <div class="card-featured mb-5">
+            <div class="text-5xl font-black mb-2" style="color:${gradoColor}">${grado}</div>
+
             <div class="grid grid-cols-3 gap-4 mb-4">
-              <div class="text-center">
-                <p class="text-2xl font-bold text-success-600">${stats.aciertos}</p>
-                <p class="text-xs text-neutral-500 mt-1">Aciertos</p>
+              <div>
+                <p class="text-2xl font-bold text-emerald-600">${stats.aciertos}</p>
+                <p class="text-xs text-neutral-500 mt-0.5">Aciertos</p>
               </div>
-              <div class="text-center">
-                <p class="text-2xl font-bold text-danger-600">${stats.total - stats.aciertos}</p>
-                <p class="text-xs text-neutral-500 mt-1">Fallos</p>
+              <div>
+                <p class="text-2xl font-bold text-rose-500">${stats.total - stats.aciertos}</p>
+                <p class="text-xs text-neutral-500 mt-0.5">Fallos</p>
               </div>
-              <div class="text-center">
-                <p class="text-2xl font-bold text-accent-600">${stats.porcentaje}%</p>
-                <p class="text-xs text-neutral-500 mt-1">Precisión</p>
+              <div>
+                <p class="text-2xl font-bold text-indigo-600">${pct}%</p>
+                <p class="text-xs text-neutral-500 mt-0.5">Precisión</p>
               </div>
             </div>
-            <div class="progress">
-              <div class="progress-bar" style="width: ${stats.porcentaje}%"></div>
+
+            <!-- Barra -->
+            <div class="progress h-3">
+              <div class="h-full rounded-full transition-all duration-1000"
+                style="width:${pct}%;background:${
+                  pct >= 80
+                    ? 'linear-gradient(90deg,#10b981,#059669)'
+                    : pct >= 60
+                    ? 'linear-gradient(90deg,#38bdf8,#0ea5e9)'
+                    : 'linear-gradient(90deg,#fbbf24,#f59e0b)'
+                }">
+              </div>
             </div>
           </div>
         ` : ''}
 
-        <button id="btn-volver" class="btn-accent w-full">
+        <button id="btn-volver" class="btn-accent w-full py-3">
           Volver al inicio
         </button>
       </div>
     `
-
-    document.getElementById('btn-volver')?.addEventListener('click', () => {
-      this.onSesionCancelada?.()
-    })
+    document.getElementById('btn-volver')?.addEventListener('click', () => this.onSesionCancelada?.())
   }
 
+  // ─── UTILIDADES ──────────────────────────────────────────────────────────────
+
   private deshabilitarBotones(): void {
-    document.querySelectorAll('button[id^="btn-"]').forEach(btn => {
-      (btn as HTMLButtonElement).disabled = true
-      btn.classList.add('opacity-50', 'cursor-not-allowed')
+    document.querySelectorAll<HTMLButtonElement>('#botones-calificacion button').forEach(b => {
+      b.disabled = true
+      b.style.opacity = '0.5'
     })
   }
 
   private habilitarBotones(): void {
-    document.querySelectorAll('button[id^="btn-"]').forEach(btn => {
-      (btn as HTMLButtonElement).disabled = false
-      btn.classList.remove('opacity-50', 'cursor-not-allowed')
+    document.querySelectorAll<HTMLButtonElement>('#botones-calificacion button').forEach(b => {
+      b.disabled = false
+      b.style.opacity = ''
     })
+  }
+
+  private confetti(): void {
+    const colores = ['#6366f1', '#14b8a6', '#f59e0b', '#10b981', '#f43f5e', '#8b5cf6']
+    for (let i = 0; i < 55; i++) {
+      const el   = document.createElement('div')
+      const size = Math.random() * 8 + 4
+      el.style.cssText = `
+        position:fixed;width:${size}px;height:${size}px;
+        background:${colores[Math.floor(Math.random() * colores.length)]};
+        left:${Math.random() * 100}vw;top:-10px;
+        border-radius:${Math.random() > 0.5 ? '50%' : '3px'};
+        z-index:9999;pointer-events:none;
+        animation:confettiFall ${1.8 + Math.random() * 2}s ease-in ${Math.random() * 0.6}s forwards;
+      `
+      document.body.appendChild(el)
+      setTimeout(() => el.remove(), 4500)
+    }
   }
 }

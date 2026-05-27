@@ -2,7 +2,7 @@
  * Router SPA para gestionar las vistas principales
  */
 
-export type RouteType = 'inicio' | 'mazo' | 'sesion' | 'dashboard' | 'gemini' | 'tarjetas'
+export type RouteType = 'inicio' | 'mazo' | 'sesion' | 'dashboard' | 'gemini' | 'tarjetas' | 'desafio'
 
 export interface Route {
   path: RouteType
@@ -17,6 +17,7 @@ export class Router {
     ['dashboard', { path: 'dashboard', titulo: 'Dashboard' }],
     ['gemini',    { path: 'gemini',    titulo: 'Análisis IA' }],
     ['tarjetas',  { path: 'tarjetas',  titulo: 'Gestionar Tarjetas' }],
+    ['desafio',   { path: 'desafio',   titulo: 'Modo Desafío IA' }],
   ])
 
   private rutaActual: RouteType = 'inicio'

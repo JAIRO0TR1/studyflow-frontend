@@ -5,10 +5,14 @@ import { SesionView } from '@/views/SesionView'
 import { DashboardView } from '@/views/DashboardView'
 import { GeminiView } from '@/views/GeminiView'
 import { TarjetaListView } from '@/views/TarjetaListView'
+import { AuthView } from '@/views/AuthView'
 import { mazoController } from '@/controllers/MazoController'
 import { sesionController } from '@/controllers/SesionController'
 import { geminiController } from '@/controllers/GeminiController'
+import { authController } from '@/controllers/AuthController'
+import { setSesionExpiradaHandler } from '@/api/HttpClient'
 import type { Mazo } from '@/models/Mazo'
+import type { UsuarioSesion } from '@/models/Auth'
 
 class App {
   private appContainer: HTMLElement | null = null
@@ -17,16 +21,50 @@ class App {
   private dashboardView: DashboardView | null = null
   private geminiView: GeminiView | null = null
   private tarjetaListView: TarjetaListView | null = null
+  private authView: AuthView | null = null
+  private usuarioActual: UsuarioSesion | null = null
 
   async inicializar(): Promise<void> {
     console.log('[App] Inicializando StudyFlow...')
     this.appContainer = document.getElementById('app')
     if (!this.appContainer) return
 
-    this.renderizarLayout()
-    this.configurarRutas()
-    this.cargarRutaInicial()
+    // Registrar handler global para sesiones expiradas (401)
+    setSesionExpiradaHandler(() => this.mostrarLogin('login'))
+
+    // Si hay sesión activa, mostrar la app; si no, mostrar login
+    if (authController.estaAutenticado()) {
+      this.usuarioActual = authController.obtenerUsuario()
+      this.renderizarLayout()
+      this.configurarRutas()
+      this.cargarRutaInicial()
+    } else {
+      this.mostrarLogin('login')
+    }
+
     console.log('[App] StudyFlow listo')
+  }
+
+  // ─── AUTH ────────────────────────────────────────────────────────────────────
+
+  private mostrarLogin(modo: 'login' | 'registro' = 'login'): void {
+    this.appContainer!.innerHTML = '<div id="auth-root"></div>'
+    this.authView = new AuthView('auth-root')
+    this.authView.setEventHandlers({
+      onAutenticado: (usuario) => {
+        this.usuarioActual = usuario
+        this.renderizarLayout()
+        this.configurarRutas()
+        this.cargarRutaInicial()
+      },
+    })
+    this.authView.mostrar(modo)
+  }
+
+  private cerrarSesion(): void {
+    authController.cerrarSesion()
+    this.usuarioActual = null
+    this.mostrarLogin('login')
   }
 
   // ─── LAYOUT ──────────────────────────────────────────────────────────────────
@@ -49,15 +87,25 @@ class App {
               </div>
             </div>
 
-            <!-- Navegación -->
-            <nav class="flex gap-1">
-              <button id="nav-inicio" class="nav-btn">
-                Mis Mazos
-              </button>
-              <button id="nav-dashboard" class="nav-btn">
-                Progreso
-              </button>
-            </nav>
+            <!-- Navegación + usuario -->
+            <div class="flex items-center gap-1">
+              <button id="nav-inicio" class="nav-btn">Mis Mazos</button>
+              <button id="nav-dashboard" class="nav-btn">Progreso</button>
+
+              ${this.usuarioActual ? `
+                <div class="flex items-center gap-2 ml-3 pl-3 border-l border-white/20">
+                  <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    ${this.escaparHTML(this.usuarioActual.nombre.charAt(0).toUpperCase())}
+                  </div>
+                  <span class="text-white/80 text-sm hidden md:block">
+                    ${this.escaparHTML(this.usuarioActual.nombre.split(' ')[0])}
+                  </span>
+                  <button id="btn-logout" class="nav-btn text-xs opacity-70 hover:opacity-100">
+                    Salir
+                  </button>
+                </div>
+              ` : ''}
+            </div>
           </div>
         </header>
 
@@ -83,6 +131,9 @@ class App {
     document.getElementById('nav-dashboard')?.addEventListener('click', () => {
       sessionStorage.removeItem('lastMazoId')
       router.navegar('dashboard')
+    })
+    document.getElementById('btn-logout')?.addEventListener('click', () => {
+      if (confirm('¿Cerrar sesión?')) this.cerrarSesion()
     })
   }
 

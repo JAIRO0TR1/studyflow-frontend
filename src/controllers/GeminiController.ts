@@ -52,6 +52,8 @@ export class GeminiController {
           frente: t.frente,
           reverso: t.reverso,
           tipo: 'TEXTO',
+          etiquetas: [],
+          conPista: false,
         })
         tarjetasCreadas.push(tarjeta)
       }

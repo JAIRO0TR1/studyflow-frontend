@@ -31,8 +31,16 @@ export class HttpClient {
       const response = await fetch(url, { ...options, headers })
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error((error as any).message || `HTTP ${response.status}`)
+        const errorText = await response.text().catch(() => '')
+        let errorMessage = `HTTP ${response.status}`
+        try {
+          const errorJson = JSON.parse(errorText)
+          errorMessage = errorJson.message || errorJson.error || errorJson.detail || errorText || errorMessage
+        } catch {
+          if (errorText) errorMessage = errorText.substring(0, 300)
+        }
+        console.error(`[HttpClient] Backend error ${response.status} en ${endpoint}:`, errorMessage)
+        throw new Error(errorMessage)
       }
 
       // Handle 204 No Content

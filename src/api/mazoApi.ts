@@ -1,4 +1,4 @@
-import { httpClient, DEMO_USER_ID } from './HttpClient'
+import { httpClient } from './HttpClient'
 import type { Mazo, MazoDTO, MazoDeCreacion, MazoConEstadisticas } from '@/models/Mazo'
 
 /**
@@ -52,19 +52,18 @@ export const mazoApi = {
    * Exportar un mazo (JSON o CSV)
    */
   async exportar(id: string, formato: 'json' | 'csv'): Promise<Blob> {
+    const token = localStorage.getItem('authToken')
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
     const response = await fetch(
       `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/mazos/${id}/exportar?formato=${formato}`,
-      {
-        method: 'POST',
-        headers: {
-          'X-Usuario-Id': DEMO_USER_ID,
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
-        },
-      }
+      { method: 'GET', headers }
     )
 
     if (!response.ok) {
-      throw new Error(`Error al exportar mazo: ${response.statusText}`)
+      const texto = await response.text().catch(() => '')
+      throw new Error(texto || `Error ${response.status} al exportar`)
     }
 
     return response.blob()
@@ -74,23 +73,21 @@ export const mazoApi = {
    * Importar un mazo desde archivo
    */
   async importar(archivo: File): Promise<Mazo> {
+    const token = localStorage.getItem('authToken')
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
     const formData = new FormData()
     formData.append('archivo', archivo)
 
     const response = await fetch(
       `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/mazos/importar`,
-      {
-        method: 'POST',
-        headers: {
-          'X-Usuario-Id': DEMO_USER_ID,
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
-        },
-        body: formData,
-      }
+      { method: 'POST', headers, body: formData }
     )
 
     if (!response.ok) {
-      throw new Error(`Error al importar mazo: ${response.statusText}`)
+      const texto = await response.text().catch(() => '')
+      throw new Error(texto || `Error ${response.status} al importar`)
     }
 
     return response.json()

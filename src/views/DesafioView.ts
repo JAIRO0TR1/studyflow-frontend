@@ -38,6 +38,7 @@ export class DesafioView {
   private tiempoSeg    = TIEMPO_POR_PREGUNTA
   private timerHandle: ReturnType<typeof setInterval> | null = null
   private respondido   = false
+  private keyHandler:  ((e: KeyboardEvent) => void) | null = null
 
   private onVolver?:   () => void
   private onCompleto?: (r: ResultadoDesafio) => void
@@ -377,6 +378,7 @@ export class DesafioView {
       if (fill && this.tiempoSeg <= 5) fill.classList.add('timer-bar-danger')
       if (this.tiempoSeg <= 0) {
         this.detenerTimer()
+        this.quitarKeyHandler()
         if (!this.respondido) {
           this.respondido = true
           this.vidas--
@@ -394,24 +396,32 @@ export class DesafioView {
     }
   }
 
+  private quitarKeyHandler(): void {
+    if (this.keyHandler) {
+      document.removeEventListener('keydown', this.keyHandler)
+      this.keyHandler = null
+    }
+  }
+
   // ─── RESPUESTA ────────────────────────────────────────────────────────────────
 
   private escucharRespuesta(): void {
-    const handler = (e: KeyboardEvent) => {
+    this.quitarKeyHandler()
+    this.keyHandler = (e: KeyboardEvent) => {
       if (this.respondido) return
       const mapa: Record<string, number> = { a: 0, b: 1, c: 2, d: 3, '1': 0, '2': 1, '3': 2, '4': 3 }
       const idx = mapa[e.key.toLowerCase()]
       if (idx !== undefined) {
-        document.removeEventListener('keydown', handler)
+        this.quitarKeyHandler()
         this.procesar(idx)
       }
     }
-    document.addEventListener('keydown', handler)
+    document.addEventListener('keydown', this.keyHandler)
     document.querySelectorAll('.quiz-option').forEach(btn => {
       btn.addEventListener('click', () => {
         if (this.respondido) return
         const idx = parseInt((btn as HTMLElement).dataset.idx ?? '0')
-        document.removeEventListener('keydown', handler)
+        this.quitarKeyHandler()
         this.procesar(idx)
       })
     })
@@ -443,6 +453,9 @@ export class DesafioView {
       else if (i === idx && !tiempoAgotado)     btn.classList.add('quiz-option-wrong')
     })
     if (acierto && pts) {
+      // Actualizar score en HUD sin esperar al re-render de la siguiente pregunta
+      const scoreEl = document.getElementById('score-num')
+      if (scoreEl) scoreEl.textContent = this.puntuacion.toLocaleString()
       const el = document.createElement('div')
       el.style.cssText = `position:fixed;top:40%;left:50%;transform:translateX(-50%);
         font-size:2.5rem;font-weight:900;color:#059669;pointer-events:none;z-index:9999;
@@ -473,6 +486,8 @@ export class DesafioView {
   // ─── RESULTADOS ───────────────────────────────────────────────────────────────
 
   private pantallaResultados(): void {
+    this.detenerTimer()
+    this.quitarKeyHandler()
     const total      = this.preguntas.length
     const pct        = total > 0 ? Math.round((this.correctas / total) * 100) : 0
     const grado      = this.grado(pct)

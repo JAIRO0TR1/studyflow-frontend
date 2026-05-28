@@ -242,7 +242,7 @@ class App {
       onEditClick:   (mazo) => this.mostrarModalEditarMazo(mazo),
       onDeleteClick: (mazo) => this.eliminarMazo(mazo.id),
       onNewClick:    ()     => this.mostrarModalCrearMazo(),
-      onImportClick: ()     => this.importarMazo(),
+
       onVerProgresoClick: () => {
         sessionStorage.removeItem('lastMazoId')
         router.navegar('dashboard')
@@ -466,11 +466,6 @@ class App {
               Ver progreso
             </button>
 
-            <hr class="border-neutral-100"/>
-            <div class="grid grid-cols-2 gap-2">
-              <button id="btn-export-json" class="btn-secondary text-sm justify-center">JSON</button>
-              <button id="btn-export-csv"  class="btn-secondary text-sm justify-center">CSV</button>
-            </div>
             <button id="btn-modal-cancelar" class="btn-outline w-full justify-center">Cerrar</button>
           </div>
         </div>
@@ -498,55 +493,10 @@ class App {
       sessionStorage.setItem('lastMazoId', mazo.id)
       this.eliminarModal(); router.navegar('dashboard')
     })
-    document.getElementById('btn-export-json')?.addEventListener('click', () => {
-      this.eliminarModal(); this.exportarMazo(mazo, 'json')
-    })
-    document.getElementById('btn-export-csv')?.addEventListener('click', () => {
-      this.eliminarModal(); this.exportarMazo(mazo, 'csv')
-    })
     document.getElementById('btn-modal-cancelar')?.addEventListener('click', () => this.eliminarModal())
     document.getElementById('modal-mazo')?.addEventListener('click', e => {
       if (e.target === document.getElementById('modal-mazo')) this.eliminarModal()
     })
-  }
-
-  // ─── EXPORTAR / IMPORTAR ──────────────────────────────────────────────────────
-
-  private async exportarMazo(mazo: Mazo, fmt: 'json' | 'csv'): Promise<void> {
-    try {
-      this.mostrarCargando(`Exportando "${mazo.nombre}"...`)
-      const blob = await mazoController.exportarMazo(mazo.id, fmt)
-      const url  = URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href = url; a.download = `${mazo.nombre.replace(/[^a-z0-9]/gi, '_')}.${fmt}`; a.click()
-      URL.revokeObjectURL(url)
-      this.mostrarInicio()
-    } catch {
-      this.mostrarAlerta('Error al exportar el mazo.', 'danger')
-      setTimeout(() => router.navegar('inicio'), 2500)
-    }
-  }
-
-  private importarMazo(): void {
-    const input = document.createElement('input')
-    input.type = 'file'; input.accept = '.json'
-    input.style.display = 'none'
-    document.body.appendChild(input)
-    input.addEventListener('change', async () => {
-      const archivo = input.files?.[0]
-      document.body.removeChild(input)
-      if (!archivo) return
-      try {
-        this.mostrarCargando(`Importando "${archivo.name}"...`)
-        await mazoController.importarMazo(archivo)
-        mostrarToast('Mazo importado correctamente', 'success')
-        setTimeout(() => router.navegar('inicio'), 1500)
-      } catch {
-        this.mostrarAlerta('Error al importar. Asegúrate de que el archivo es un JSON válido exportado desde StudyFlow.', 'danger')
-        setTimeout(() => router.navegar('inicio'), 3000)
-      }
-    })
-    input.click()
   }
 
   // ─── SESIÓN ───────────────────────────────────────────────────────────────────

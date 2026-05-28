@@ -41,7 +41,6 @@ export class MazoListView {
   private onEditClick?:   (mazo: Mazo) => void
   private onDeleteClick?: (mazo: Mazo) => void
   private onNewClick?:    () => void
-  private onImportClick?: () => void
   private onVerProgresoClick?: () => void
 
   constructor(containerId: string) {
@@ -55,14 +54,12 @@ export class MazoListView {
     onEditClick?:   (mazo: Mazo) => void
     onDeleteClick?: (mazo: Mazo) => void
     onNewClick?:    () => void
-    onImportClick?: () => void
     onVerProgresoClick?: () => void
   }): void {
     this.onMazoClick   = h.onMazoClick
     this.onEditClick   = h.onEditClick
     this.onDeleteClick = h.onDeleteClick
     this.onNewClick    = h.onNewClick
-    this.onImportClick = h.onImportClick
     this.onVerProgresoClick = h.onVerProgresoClick
   }
 
@@ -333,13 +330,6 @@ export class MazoListView {
             </p>
           </div>
           <div class="flex gap-2">
-            <button id="btn-importar-mazo" class="btn-secondary text-sm gap-2">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
-              </svg>
-              Importar
-            </button>
             <button id="btn-nuevo-mazo" class="btn-primary text-sm gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -369,11 +359,10 @@ export class MazoListView {
         </div>
         <h3 class="text-lg font-bold text-slate-800 mb-2">Sin mazos todavía</h3>
         <p class="text-slate-500 text-sm mb-8 max-w-sm mx-auto">
-          Crea tu primer mazo de estudio o importa uno existente en formato JSON.
+          Crea tu primer mazo de estudio para comenzar a aprender.
         </p>
         <div class="flex gap-3 justify-center">
           <button id="btn-crear-primero" class="btn-primary">Crear primer mazo</button>
-          <button id="btn-importar-primero" class="btn-secondary">Importar JSON</button>
         </div>
       </div>
     `
@@ -476,8 +465,6 @@ export class MazoListView {
   private bindEventos(): void {
     document.getElementById('btn-nuevo-mazo')?.addEventListener('click', () => this.onNewClick?.())
     document.getElementById('btn-crear-primero')?.addEventListener('click', () => this.onNewClick?.())
-    document.getElementById('btn-importar-mazo')?.addEventListener('click', () => this.onImportClick?.())
-    document.getElementById('btn-importar-primero')?.addEventListener('click', () => this.onImportClick?.())
     document.getElementById('btn-ver-mas-stats')?.addEventListener('click', () => this.onVerProgresoClick?.())
 
     document.querySelectorAll<HTMLElement>('[data-mazo-id]').forEach(el => {
